@@ -34,6 +34,8 @@ SearchSpace := CartesianProduct(CoeffSpace, ExpSpace);
 printf "p := %o;\nn := %o;\n\nF<a> := GF(p^n);\nR<x> := PolynomialRing(F);\n\n", p, n;
 printf "Functions := [";
 
+FFs:=getFFs(F);
+
 for s in SearchSpace do
     c := s[1];
     e := s[2];
@@ -47,7 +49,7 @@ for s in SearchSpace do
 
     candidate := R!candidate;
 
-    if isPlanar(candidate) then
+    if fastIsPlanarDOPolynomial(candidate,FFs) then
         printf "%o,", candidate;
     end if;
 end for;
