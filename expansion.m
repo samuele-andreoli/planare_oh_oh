@@ -49,7 +49,7 @@ for s in SearchSpace do
 
     candidate := R!candidate;
 
-    if fastIsPlanarDOPolynomial(candidate,FFs) then
+    if fastIsPlanarDOPoly(candidate,FFs) then
         printf "%o,", candidate;
     end if;
 end for;
