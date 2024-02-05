@@ -51,7 +51,9 @@ load "lib/semifields.m";
 load "lib/dupeq.m";
 for n:=2 to 6 do
   Fun:=getFun(n);
+  Subfields:=PrecomputeSubfields(F);
   for f in Fun do
-    printf "%o %o %o",;
+  	P:=partitionByL2(f);
+    printf "%o %o %o",AutomoriphismGroupOrderFromFunction(f),NucleiInvariantsCommutativeSemifield(f, Subfields),#P,[Rep(o): o in partitionByL2(f)];
   end for;
 */
