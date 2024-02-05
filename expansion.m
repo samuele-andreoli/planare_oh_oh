@@ -47,7 +47,7 @@ for s in SearchSpace do
 
     candidate := R!candidate;
 
-    if isPlanar(candidate) then
+    if isPlanarDOPoly(candidate) then
         printf "%o,", candidate;
     end if;
 end for;

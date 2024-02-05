@@ -33,7 +33,7 @@ PresemifieldToSemifield:=function(PSF, e)
 end function;
 
 /* For verifying that the semifields produced by the function above have 1 as the identity */
-function aux_verify_identity(SF,e)
+function VerifyIdentity(SF,e)
 	F := Parent(e);
 	for x in F do
 		if SF[{x,e}] ne x then
@@ -92,101 +92,86 @@ function is_in_right_nucleus(SF,a)
 	return true;
 end function;
 
+LeftNucleus := function(SF,cosets)
+    for c in cosets do
+        if is_in_left_nucleus(SF, Random(c)) then
+            return #c;
+        end if;
+    end for;
 
-function left_nucleus_with_identity(SF,e)
-	F := Parent(e);
-    p := Characteristic(F);
-    n := Degree(F);
-
-	possible_dimensions := Divisors(n);
-
-	while #possible_dimensions gt 0 do
-		current := possible_dimensions[#possible_dimensions];
-		current_set := { e * x : x in GF(p^current) };
-		for i in [1..#possible_dimensions-1] do
-			current_set := current_set diff {e *  x : x in GF(p^possible_dimensions[i]) };
-		end for;
-		alpha := Random(current_set);
-
-		condition := is_in_left_nucleus(SF, alpha);
-		if condition then
-			return p^current;
-		else
-			Exclude(~possible_dimensions, current);
-		end if;
-	end while;
-
-	return 0;
+    return 0;
 end function;
 
+MiddleNucleus := function(SF,cosets)
+    for c in cosets do
+        if is_in_middle_nucleus(SF, Random(c)) then
+            return #c;
+        end if;
+    end for;
 
-/* Find the subfield that represents the middle nucleus of a function in the given dimension. */
-middle_nucleus_with_identity := function(SF,e)
-	F := Parent(e);
-    p := Characteristic(F);
-    n := Degree(F);
-
-	possible_dimensions := Divisors(n);
-
-	while #possible_dimensions gt 0 do
-		current := possible_dimensions[#possible_dimensions];
-		current_set := { e * x : x in GF(p^current) };
-		for i in [1..#possible_dimensions-1] do
-			current_set := current_set diff {e *  x : x in GF(p^possible_dimensions[i]) };
-		end for;
-		alpha := Random(current_set);
-
-		condition := is_in_middle_nucleus(SF, alpha);
-		if condition then
-			return p^current;
-		else
-			Exclude(~possible_dimensions, current);
-		end if;
-	end while;
-
-	return 0;
+    return 0;
 end function;
 
+RightNucleus := function(SF,cosets)
+    for c in cosets do
+        if is_in_right_nucleus(SF, Random(c)) then
+            return #c;
+        end if;
+    end for;
 
-right_nucleus_with_identity := function(SF,e)
-	F := Parent(e);
-    p := Characteristic(F);
+    return 0;
+end function;
+
+/* Precomputation utilities for the subfields for the nuclei invariants */
+PrecomputeSubfields := function(F)
     n := Degree(F);
 
-	possible_dimensions := Divisors(n);
+    divisors := Divisors(n);
 
-	while #possible_dimensions gt 0 do
-		current := possible_dimensions[#possible_dimensions];
-		current_set := { e * x : x in GF(p^current) };
-		for i in [1..#possible_dimensions-1] do
-			current_set := current_set diff {e *  x : x in GF(p^possible_dimensions[i]) };
-		end for;
-		alpha := Random(current_set);
+    Reverse(~divisors);
+    Subfields := [{x : x in sub<F|d>} : d in divisors];
+    Subfields;
 
-		condition := is_in_right_nucleus(SF, alpha);
-		if condition then
-			return p^current;
-		else
-			Exclude(~possible_dimensions, current);
-		end if;
-	end while;
+    Reverse(~divisors);
+    for i := 1 to #divisors do
+        to_remove := {x : x in sub<F|divisors[i]>};
+        
+        for j := 1 to #Subfields-i do
+            Subfields[j] diff:= to_remove;
+        end for;
+    end for;
 
-	return 0;
+    return Subfields;
+end function;
+
+CombineSubfieldsWithIdentity := function(S, e)
+    combined := [];
+    for s in S do
+        Append(~combined, {e*si : si in s});
+    end for;
+
+    return combined;
 end function;
 
 /* Compute the nuclei invariants */
-function NucleiInvariants(f)
+function NucleiInvariants(f, Subfields)
     F:=BaseRing(Parent(f));
 
     PSF := DOtoPresemifield(f);
     SF := PresemifieldToSemifield(PSF, One(F));
 
     e := PSF[{One(F)}];
-    assert aux_verify_identity(SF,e);
+    assert VerifyIdentity(SF,e);
 
-	ln := left_nucleus_with_identity(SF,e);
-	mn := middle_nucleus_with_identity(SF,e);
-	rn := right_nucleus_with_identity(SF,e);
+    cosets := CombineSubfieldsWithIdentity(Subfields, e);
+
+	ln := LeftNucleus(SF,cosets);
+	mn := MiddleNucleus(SF,cosets);
+	rn := RightNucleus(SF,cosets);
+
+    assert ln ne 0;
+    assert mn ne 0;
+    assert rn ne 0;
 
 	return [ln, mn, rn];
 end function;
