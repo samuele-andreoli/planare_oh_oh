@@ -47,8 +47,6 @@ load "./expansions/p3_n4_m4_l1_x2";
 /* First partition using the nuclei invariant */
 S := PrecomputeSubfields(F);
 
-S;
-
 compute_nuclei_invariants := function(f)
     return NucleiInvariantsCommutativeSemifield(f, S);
 end function;
