@@ -9,7 +9,7 @@ getFun:=function(n)
     return [
     x^2, 
     x^14, 
-    x^36 +2*x^10 +x^4
+    x^36 +2*x^10 +2*x^4
     ];
   elif n eq 5 then
     return [
