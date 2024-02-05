@@ -2,7 +2,7 @@ n:=4;
 p:=3;
 F:=GF(p^n);
 R:=PolynomialRing(F);
-Fam:=getAllPlanar(R);
+Fam:=getAllDOPlanar(R);
 FFs:=getFFs(F);
 for f in Fam do
   fastIsPlanarDOPoly(f);
