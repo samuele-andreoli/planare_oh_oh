@@ -196,7 +196,7 @@ getCG:=function(R)
   return [getFunFromSpecialSemifield(R,Op1,a*y+a^3 *y^9,a*y^(p^m)): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
 end function;
 
-getCG:=function(R)
+getZP:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
   n:=Degree(F);
@@ -244,6 +244,10 @@ getG:=function(R)
   return [R!Interpolation([a: a in GF(p^(2*m))],Out)];
 end function;
 
+getAllDOPlanar:=function(R)
+  return &cat[fun(R): fun in [getG,getZP,getCG,getD,getBHB,getB,getZKW,getCMDY,getA,getFF]];
+end function;
+
 //it is our version
 getCHK:=function(R)
   x:=R.1;
@@ -255,3 +259,5 @@ getCHK:=function(R)
   end if;
   return [x^2-x^6+x^82+x^246];
 end function;
+
+
