@@ -1,3 +1,5 @@
+load "lib/FamiliesPlanar.m";
+load "lib/planar.m";
 n:=4;
 p:=3;
 F:=GF(p^n);
