@@ -46,6 +46,10 @@ getFun:=function(n)
 end function;
 
 /*
+load "lib/ccz_equivalence.m";
+load "lib/semifields.m";
+load "lib/dupeq.m";
+load "lib/planar.m";
 for n:=3 to 6 do
   Fun:=getFun(n);
   printf "\n\ndimension %o\n",n;
@@ -55,9 +59,11 @@ for n:=3 to 6 do
     i +:=1;
     printf "\n%o.%o \t",n,i;
     if isDOPolynomial(f) then
-  	   P:=partitionByL2(f);
-       printf "%o %o %o %o",AutomoriphismGroupOrderFromFunction(f),NucleiInvariantsCommutativeSemifield(f, Subfields),#P,[Rep(o): o in P];
+    	printf "%o ",NucleiInvariantsCommutativeSemifield(f, Subfields);
     end if;
+    printf "%o ",AutomoriphismGroupOrderFromFunction(f);
+    P:=partitionByL2(f);
+    printf "%o %o",#P,[Rep(o): o in P];
   end for;
 end for;
 */
