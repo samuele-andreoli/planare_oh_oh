@@ -39,11 +39,23 @@ end function;
 /* BEGIN of user modifiable section */
 
 // Example clasify one or more of the expansions
-load "./expansions/p3_n6_m6_l1_x2";
+// Defines
+//
+// p; n; F<a> := GF(p^n); R<x> := PolynomialRing(F);
+load "./expansions/p3_n4_m4_l1_x2";
 
-part_nuclei := PartitionUsingInvariant(Functions, NucleiInvariants);
+/* First partition using the nuclei invariant */
+S := PrecomputeSubfields(F);
 
-part_nuclei := [Functions];
+S;
+
+compute_nuclei_invariants := function(f)
+    return NucleiInvariantsCommutativeSemifield(f, S);
+end function;
+
+part_nuclei := PartitionUsingInvariant(Functions, compute_nuclei_invariants);
+
+// part_nuclei := [Functions];
 
 // part_nuclei_code := [];
 
