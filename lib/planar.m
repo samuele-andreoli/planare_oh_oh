@@ -16,6 +16,28 @@ weight := function(p,n)
     return w;
 end function;
 
+/* FFs is a list of nonzero elements a in GF(p^n) such that -a is not in FFs */
+
+getFFs:=function(F)
+	FFs:=[a: a in F|not IsZero(a)];
+	for i:=1 to ((#F-1) div 2) do
+  		Remove(~FFs,Index(FFs,-FFs[i]));
+	end for;
+ 
+	return FFs;
+end function;
+
+fastIsPlanarDOPoly:=function(f,FFs)
+  S:={};
+  for a in FFs do
+    b:=Evaluate(f,a);
+    if b in S then
+      return false;
+    end if;
+  end for;
+  return true;
+end function;
+
 /* Check if a function is DO poly */
 isDOPolynomial := function(f)
 	F := BaseRing(Parent(f));
