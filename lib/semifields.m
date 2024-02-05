@@ -217,7 +217,5 @@ function NucleiInvariantsCommutativeSemifield(f, Subfields)
     // assert mn ge p;
     // assert rn ge p;
 
-    [rn, mn];
-
 	return [rn, mn];
 end function;
