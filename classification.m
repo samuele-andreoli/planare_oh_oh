@@ -50,7 +50,7 @@ S := PrecomputeSubfields(F);
 S;
 
 compute_nuclei_invariants := function(f)
-    return NucleiInvariants(f, S);
+    return NucleiInvariantsCommutativeSemifield(f, S);
 end function;
 
 part_nuclei := PartitionUsingInvariant(Functions, compute_nuclei_invariants);

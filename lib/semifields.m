@@ -95,7 +95,7 @@ end function;
 LeftNucleus := function(SF,cosets)
     for c in cosets do
         if is_in_left_nucleus(SF, Random(c)) then
-            return #c;
+            return c;
         end if;
     end for;
 
@@ -105,7 +105,7 @@ end function;
 MiddleNucleus := function(SF,cosets)
     for c in cosets do
         if is_in_middle_nucleus(SF, Random(c)) then
-            return #c;
+            return c;
         end if;
     end for;
 
@@ -115,7 +115,7 @@ end function;
 RightNucleus := function(SF,cosets)
     for c in cosets do
         if is_in_right_nucleus(SF, Random(c)) then
-            return #c;
+            return c;
         end if;
     end for;
 
@@ -130,7 +130,6 @@ PrecomputeSubfields := function(F)
 
     Reverse(~divisors);
     Subfields := [{x : x in sub<F|d>} : d in divisors];
-    Subfields;
 
     Reverse(~divisors);
     for i := 1 to #divisors do
@@ -141,7 +140,8 @@ PrecomputeSubfields := function(F)
         end for;
     end for;
 
-    return Subfields;
+    // No need to check the base field since e_SF is in N.
+    return Subfields[1..#Subfields-1];
 end function;
 
 CombineSubfieldsWithIdentity := function(S, e)
@@ -153,8 +153,19 @@ CombineSubfieldsWithIdentity := function(S, e)
     return combined;
 end function;
 
+/* Compute the Nucleus size from cosets as
+ * sum of the size of the cosets to examin
+ * increased by three to count for the base field
+ * tha is not examined.
+ */
+NucleusSizeFromCoset := function(cosets, c)
+    p := Characteristic(Parent(Rep(c)));
+    remaining_cosets := cosets[Index(cosets, c)..#cosets];
+    return &+[#c : c in remaining_cosets] + 3;
+end function;
+
 /* Compute the nuclei invariants */
-function NucleiInvariants(f, Subfields)
+function NucleiInvariants(f, Subfields, Sizes)
     F:=BaseRing(Parent(f));
 
     PSF := DOtoPresemifield(f);
@@ -165,13 +176,54 @@ function NucleiInvariants(f, Subfields)
 
     cosets := CombineSubfieldsWithIdentity(Subfields, e);
 
-	ln := LeftNucleus(SF,cosets);
-	mn := MiddleNucleus(SF,cosets);
-	rn := RightNucleus(SF,cosets);
+	c := LeftNucleus(SF,cosets);
+    ln := NucleusSizeFromCoset(cosets, c);
 
-    assert ln ne 0;
-    assert mn ne 0;
-    assert rn ne 0;
+	c := MiddleNucleus(SF,cosets);
+    mn := NucleusSizeFromCoset(cosets, c);
+
+	c := RightNucleus(SF,cosets);
+    rn := NucleusSizeFromCoset(cosets, c);
+
+    p := Characteristic(F);
+    assert ln ge p;
+    assert mn ge p;
+    assert rn ge p;
 
 	return [ln, mn, rn];
+end function;
+
+/* Nuclei invariants for commutative semifields */
+
+/* Compute the nuclei invariants */
+function NucleiInvariantsCommutativeSemifield(f, Subfields)
+    F:=BaseRing(Parent(f));
+    p := Characteristic(F);
+
+    PSF := DOtoPresemifield(f);
+    SF := PresemifieldToSemifield(PSF, One(F));
+
+    e := PSF[{One(F)}];
+    assert VerifyIdentity(SF,e);
+
+    cosets := CombineSubfieldsWithIdentity(Subfields, e);
+
+    // First compute the middle nucleus and select the remaining cosets
+    // for the further search of the left and right nuclei
+	c := MiddleNucleus(SF,cosets);
+    remaining_cosets := cosets[Index(cosets, c)..#cosets];
+    mn := &+[#c : c in remaining_cosets] + p;
+
+    // Nl = Nr = N is subset of Nm, and we know Nm
+	c := RightNucleus(SF,remaining_cosets);
+    remaining_cosets := cosets[Index(cosets, c)..#cosets];
+    rn := &+[#c : c in remaining_cosets] + p;
+
+    p := Characteristic(F);
+    assert mn ge p;
+    assert rn ge p;
+
+    [rn, mn];
+
+	return [rn, mn];
 end function;
