@@ -43,8 +43,9 @@ isDOPolynomial := function(f)
 	F := BaseRing(Parent(f));
     p := Characteristic(F);
 
-    e := 0;
+    e := -1;
     for c in Coefficients(f) do
+        e := e+1;
         if IsZero(c) then
             continue;
         end if;
@@ -53,7 +54,6 @@ isDOPolynomial := function(f)
             return false;
         end if;
 
-        e := e+1;
     end for;
 
     return true;
