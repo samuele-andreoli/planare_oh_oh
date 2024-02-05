@@ -4,7 +4,7 @@
 
 PresemifieldToDO:=function(PSF)
   F:=Parent(Rep(Keys(PSF)));
-  return Interpolation([a: a in F],[SF[{a,a}]/2: a in F]);
+  return Interpolation([a: a in F],[PSF[{a,a}]/2: a in F]);
 end function;
 
 
@@ -20,8 +20,9 @@ DOtoPresemifield:=function(f)
 end function;
 
 PresemifieldToSemifield:=function(PSF,e)
-  if IsZero(a) then error "a is zero"; end if;
+  if IsZero(e) then error "e is zero"; end if;
   SF:=AssociativeArray();
+  F:=Parent(e);
   for a,b in F do
     a0:=PSF[{a,e}];
     b0:=PSF[{b,e}];
@@ -135,7 +136,7 @@ getBHB:=function(R)
         if not IsZero(b) and Order(b^(p^m-1)) eq orderB then
           g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
           for o in O do
-            Append(~BHB,x^(p^m+1)+o*g)
+            Append(~BHB,x^(p^m+1)+o*g);
           end for;
         end if;
       end for;
@@ -213,8 +214,10 @@ getZP:=function(R)
     if IsOdd(m div GCD(m,k)) then
       Op1:=2*y^(p^k+1);
       for i in cop do
-        Op2:=a*y^(p^i);
-        Append(~ZP,getFunFromSpecialSemifield(R,Op1,Op2,Op3));
+        for a in ns do
+          Op2:=a*y^(p^i);
+          Append(~ZP,getFunFromSpecialSemifield(R,Op1,Op2,Op3));
+        end for;
       end for;
     end if;
   end for;
@@ -228,6 +231,7 @@ getG:=function(R)
   if p ne 3 or not IsDivisibleBy(n,2) then
     return [];
   end if;
+  m:=n div 2;
   Out:=[];
   for a in GF(p^(2*m)) do
           s:=Eltseq(a);
@@ -254,10 +258,8 @@ getCHK:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
   n:=Degree(F);
-  if [p,] ne [3,8] then
+  if [p,n] ne [3,8] then
     return [];
   end if;
   return [x^2-x^6+x^82+x^246];
 end function;
-
-
