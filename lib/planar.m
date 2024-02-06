@@ -83,7 +83,7 @@ isPlanarGeneric := function(f)
 end function;
 
 isPlanarDOPoly := function(f)
-    K:={x : x in BaseRing(Parent(f)) | not IsZero(x)};
+    K:=[x : x in BaseRing(Parent(f)) | not IsZero(x)];
     S:={};
 
     while #K ne 0 do
