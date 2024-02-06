@@ -23,7 +23,11 @@ F<a> := GF(p^n);
 R<x> := PolynomialRing(F);
 
 S := {x : x in GF(p^m) | not IsZero(x)};
-E := [e : e in [3..p^n] | weight(p, e) eq 2 and e ne f];
+
+// DO poly exponents. The check i ge j is redundant since we use a set,
+// but might as well have it explicit.
+E := {p^i + p^j : i,j in [0..n-1] | i ge j};
+Exclude(~E, f);
 
 CoeffSpace := CartesianPower(S, l);
 ExpSpace   := CartesianPower(E, l);

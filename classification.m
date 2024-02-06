@@ -42,7 +42,7 @@ end function;
 // Defines
 //
 // p; n; F<a> := GF(p^n); R<x> := PolynomialRing(F);
-load "./expansions/p3_n4_m4_l1_x2";
+load "./expansions/p3_n6_m6_l1_x2";
 
 /* First partition using the nuclei invariant */
 S := PrecomputeSubfields(F);
@@ -53,15 +53,13 @@ end function;
 
 part_nuclei := PartitionUsingInvariant(Functions, compute_nuclei_invariants);
 
-// part_nuclei := [Functions];
+part_nuclei_code := [];
 
-// part_nuclei_code := [];
+for p in part_nuclei do
+    part_code := PartitionUsingInvariant(p, AutomoriphismGroupOrderFromFunction);
 
-// for p in part_nuclei do
-//     part_code := PartitionUsingInvariant(p, AutomoriphismGroupOrderFromFunction);
-
-//     part_nuclei_code cat:=part_code;
-// end for;
+    part_nuclei_code cat:=part_code;
+end for;
 
 classes := [];
 
@@ -76,7 +74,7 @@ classes := [];
 // Example lin inequiv 
 classes := [];
 
-for p in part_nuclei do
+for p in part_nuclei_code do
     new_classes := PartitionUsingEquivalence(p, LinInqeuivalentToF);
 
     classes cat:= new_classes;

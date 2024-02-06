@@ -34,6 +34,8 @@ fastIsPlanarDOPoly:=function(f,FFs)
     if b in S then
       return false;
     end if;
+
+    Include(~S, b);
   end for;
   return true;
 end function;
@@ -53,7 +55,6 @@ isDOPolynomial := function(f)
         if weight(3,e) gt 2 then
             return false;
         end if;
-
     end for;
 
     return true;
@@ -63,7 +64,7 @@ end function;
 /* Checks if the given funciton is a planar function,
  * works for all functions
  */
-function isPlanarGeneric(f)
+isPlanarGeneric := function(f)
 	FF := BaseRing(Parent(f));
 	PR<x> := PolynomialRing(FF);
 
@@ -81,25 +82,28 @@ function isPlanarGeneric(f)
 	return true;
 end function;
 
-function isPlanarDOPoly(f)
-  K:=BaseRing(Parent(f));
-  S:={**};
-  for a in K do
-    b:=Evaluate(f,a);
-    if IsZero(b) and not IsZero(a) then
-      return false;
-    elif Multiplicity(S,b) eq 2 then
-      return false;
-    elif not IsZero(a) then
-      Include(~S,b);
-    end if;
-  end for;
-  return true;
+isPlanarDOPoly := function(f)
+    K:={x : x in BaseRing(Parent(f)) | not IsZero(x)};
+    S:={};
+
+    while #K ne 0 do
+        a := K[1];
+        b := Evaluate(f,a);
+        if b in S then
+            return false;
+        end if;
+
+        Include(~S, b);
+        K := K[2..#K];
+        Remove(~K,Index(K,-a));
+    end while;
+
+    return true;
 end function;
 
 
 /* Will select the fastest planarity check when possible, otherwise the normal one */
-function isPlanar(f)
+isPlanar := function(f)
     // Quick linear check whether f is a DO polynmomial.
 	if isDOPolynomial(f) then
 		return isPlanarDOPoly(f);
@@ -110,14 +114,13 @@ end function;
 
 
 /* Check if all the functions in a list are planar. */
-function isAllPlanar(Fs)
-	isPlanar := true;
+isAllPlanar := function(Fs)
 	for f in Fs do
 		if not isPlanar(f) then;
 			return false;
 		end if;
 	end for;
 
-	return isPlanar;
+	return true;
 end function;
 
