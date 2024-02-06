@@ -1,24 +1,30 @@
 DOToSemifieldPoly:=function(f, e)
+    assert not IsZero(e);
+
     F := Parent(e);
-    if IsZero(e) then error "e is zero"; end if;
-    RR<a,b>:=PolynomialRing(F,2);
-    R0:=PolynomialRing(RR);
-    f:=R0!f;
-    FE:=[a^(#F)-a,b^(#F)-b];
-    Ev:=function(f0,u)
-      r:=Zero(Parent(u));
-      for t in Terms(f0) do
-        r+:=NormalForm(Evaluate(t,u),FE);
-      end for;
-      return r;
+
+    RR<a,b> := PolynomialRing(F,3);
+    R0 := PolynomialRing(RR);
+
+    f := R0!f;
+    FE := [a^(#F)-a,b^(#F)-b];
+
+    // Fast evaluation of a polynomial and reduction by the field equations.
+    EvaluateMod := function(f0,u)
+        return &+[NormalForm(Evaluate(t,u), FE) : t in Terms(f0)];
     end function;
+
     star:=function(u,v)
-      return Ev(f,u+v)-Ev(f,u)-Ev(f,v);
+        return EvaluateMod(f,u+v) - EvaluateMod(f,u) - EvaluateMod(f,v);
     end function;
+
     starPsi:=R0!Interpolation([F!star(u,e): u in F],[u: u in F]);
+
+    // Construct polynomials for the * and star products
     asterisk:=function(u,v)
-      return star(Ev(starPsi,u),Ev(starPsi,v));
+        return star(EvaluateMod(starPsi,u),EvaluateMod(starPsi,v));
     end function;
+
     return asterisk(a,b);
 end function;
 
@@ -43,53 +49,61 @@ PrecomputeSubfields := function(F)
     return subfields, sizes;
 end function;
 
-CombineSubfieldsWithIdentity := function(S, e)
-    combined := [];
-    for s in S do
-        Append(~combined, {e*si : si in s});
-    end for;
-
-    return combined;
-end function;
 
 Nuclei:=function(f, e,subfields, sizes)
+    assert not IsZero(e);
+
     F := Parent(e);
-    if IsZero(e) then error "e is zero"; end if;
-    RR<a,b,c>:=PolynomialRing(F,3);
-    R0:=PolynomialRing(RR);
-    f:=R0!f;
-    FE:=[a^(#F)-a,b^(#F)-b,c^(#F)-c];
-    Ev:=function(f0,u)
-      r:=Zero(Parent(u));
-      for t in Terms(f0) do
-        r+:=NormalForm(Evaluate(t,u),FE);
-      end for;
-      return r;
+
+    RR<a,b,c> := PolynomialRing(F,3);
+    R0 := PolynomialRing(RR);
+
+    f := R0!f;
+    FE := [a^(#F)-a,b^(#F)-b,c^(#F)-c];
+
+    // Fast evaluation of a polynomial and reduction by the field equations.
+    EvaluateMod := function(f0,u)
+        return &+[NormalForm(Evaluate(t,u), FE) : t in Terms(f0)];
     end function;
+
+    // Construct polynomials for the star and * products
     star:=function(u,v)
-      return Ev(f,u+v)-Ev(f,u)-Ev(f,v);
+        return EvaluateMod(f,u+v) - EvaluateMod(f,u) - EvaluateMod(f,v);
     end function;
-    starPsi:=R0!Interpolation([F!star(u,e): u in F],[u: u in F]);
-    asterisk:=function(u,v)
-      return star(Ev(starPsi,u),Ev(starPsi,v));
+
+    starPsi := R0!Interpolation([F!star(u,e): u in F],[u: u in F]);
+
+    asterisk := function(u,v)
+        return star(EvaluateMod(starPsi,u),EvaluateMod(starPsi,v));
     end function;
-    fl:=asterisk(asterisk(a,b),c);
-    fr:=asterisk(a,asterisk(b,c));
-    g:=fl-fr;
-    cosets := CombineSubfieldsWithIdentity(subfields,star(e,e));
+
+    // Associativity equation
+    fl := asterisk(asterisk(a,b),c);
+    fr := asterisk(a,asterisk(b,c));
+    g  := fl-fr;
+
+    // Compute the commutative cosets for the nuclei search
+    identity := star(e,e);
+    cosets :=  [{identity * si : si in s} : s in subfields];
+
+    // Check smaller and smaller cosets to find the middle nucleus
     for cos in cosets do
         if IsZero(Evaluate(g,[a,Rep(cos),c])) then
-          remaining_cosets := cosets[Index(cosets, cos)..#cosets];
-          mn := sizes[Index(cosets, cos)];
-          break;
+            remaining_cosets := cosets[Index(cosets, cos)..#cosets];
+            mn := sizes[Index(cosets, cos)];
+            break;
         end if;
     end for;
+
+    // Check cosets subsets of the middle nucleus to find the left/right nucleus
+    // since N = Nl = Nr is subset of Nm for commutative semifields.
     for cos in remaining_cosets do
         if IsZero(Evaluate(g,[a,b,Rep(cos)])) then
-          remaining_cosets := cosets[Index(cosets, cos)..#cosets];
-          rn := sizes[Index(cosets, cos)];
-          break;
+            remaining_cosets := cosets[Index(cosets, cos)..#cosets];
+            rn := sizes[Index(cosets, cos)];
+            break;
         end if;
     end for;
+
     return [rn,mn];
 end function;
