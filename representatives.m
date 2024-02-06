@@ -41,6 +41,17 @@ getFun:=function(n)
     a^273 * x^486 + a^182 * x^90 + 2 * x^10 + x^2, 
     a^273 * x^246 + a^182 * x^82 + a^91 * x^6 + x^2
     ];
+    elif n eq 7 then
+    	return [
+     	x^2,
+        x^4,
+	x^10,
+ 	x^28,
+  	x^10 +x^6+2*x^2,
+   	x^10 +2*x^6+2*x^2,
+    	x^14,
+     	x^122
+	];
   end if;
   return [];
 end function;
