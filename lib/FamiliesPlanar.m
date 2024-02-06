@@ -180,8 +180,8 @@ getD:=function(R)
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
   Op1:=y^2;
-  Op2:=Zero(RR);
-  return [getFunFromSpecialSemifield(R,Op1,Op2,a*y^(p^m)): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
+  Op3:=Zero(RR);
+  return [getFunFromSpecialSemifield(R,Op1,(a*y^(p^m))^2 ,Op3): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
 end function;
 
 //TO CHECK
