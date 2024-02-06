@@ -128,20 +128,15 @@ getBHB:=function(R)
   end function;
   m:=n div 2;
   BHB:=[];
-  O:=[o: o in F|not IsZero(o) and IsZero(o^(p^m)+o)];
+  O:={o: o in F|not IsZero(o) and IsZero(o^(p^m)+o)};
+  o:=Rep(O);
   for s:=1 to m do
     if ConditionBHB(F,p,s,O) then
       orderB:=(p^m+1) div GCD(p^m+1,p^s+1);
       for b in F do
         if not IsZero(b) and Order(b^(p^m-1)) eq orderB then
           g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
-          if IsZero(b^(p^m)+b) then
-            Append(~BHB,x^(p^m+1)+(b^(-1))*g);
-          else
-            for o in O do
-              Append(~BHB,x^(p^m+1)+o*g);
-            end for;
-          end if;
+          Append(~BHB,x^(p^m+1)+o*g);
         end if;
       end for;
     end if;
