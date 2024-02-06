@@ -71,12 +71,15 @@ for n:=3 to 6 do
   for f in Fun do
     i +:=1;
     printf "\n%o.%o \t",n,i;
+    N:=[];
     if isDOPolynomial(f) then
-    	printf "%o ",Nuclei(f, e,subfields,sizes);
+    	N:=Nuclei(f, e,subfields,sizes);
     end if;
-    printf "%o ",AutomoriphismGroupOrderFromFunction(f);
-    P:=partitionByL2(f);
-    printf "%o %o",#P,[Rep(o): o in P];
+    printf "%o ",N;
+    if not N in {[3^n,3^n],[3^(GCD(n,2)),3^(GCD(n,2)))]} 
+    	printf "%o ",AutomoriphismGroupOrderFromFunction(f);
+    //P:=partitionByL2(f);
+    //printf "%o %o",#P,[Rep(o): o in P];
   end for;
 end for;
 */
