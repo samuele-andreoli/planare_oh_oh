@@ -598,6 +598,10 @@ end function;
 function LinInqeuivalentToF(f, List)
     LinInequiv := [];
 
+    if #List eq 0:
+	    return [f];
+    end if;
+
     orbits := partitionByL2(f);
     orbits := [Rep(o) : o in orbits];
 
