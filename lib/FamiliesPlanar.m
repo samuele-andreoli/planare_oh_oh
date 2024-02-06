@@ -118,7 +118,11 @@ getBHB:=function(R)
   if not IsDivisibleBy(n,2) then
     return [];
   end if;
-  ConditionBHB:=function(F,p,s,O)
+  m:=n div 2;
+  BHB:=[];
+  O:={o: o in F|not IsZero(o) and IsZero(o^(p^m)+o)};
+  o:=Rep(O);
+  ConditionBHB:=function(s)
     for a in O do
       if IsZero(a^(p^s)+a) then
         return false;
@@ -126,15 +130,11 @@ getBHB:=function(R)
     end for;
     return true;
   end function;
-  m:=n div 2;
-  BHB:=[];
-  O:={o: o in F|not IsZero(o) and IsZero(o^(p^m)+o)};
-  o:=Rep(O);
   for s:=1 to m do
-    if ConditionBHB(F,p,s,O) then
+    if ConditionBHB(s) then
       orderB:=(p^m+1) div GCD(p^m+1,p^s+1);
       for b in F do
-        if not IsZero(b) and Order(b^(p^m-1)) eq orderB then
+        if not IsZero(b) and not (IsDivisibleBy(orderB,Order(b^(p^m-1)))) then
           g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
           Append(~BHB,x^(p^m+1)+o*g);
         end if;
@@ -169,6 +169,7 @@ getFunFromSpecialSemifield:=function(R,Op1,Op2,Op3)
   return R!Interpolation([a: a in GF(p^(2*m))],Out);
 end function;
 
+//TO CHECK
 getD:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
@@ -183,6 +184,7 @@ getD:=function(R)
   return [getFunFromSpecialSemifield(R,Op1,Op2,a*y^(p^m)): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
 end function;
 
+//TO CHECK
 getCG:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
@@ -196,6 +198,7 @@ getCG:=function(R)
   return [getFunFromSpecialSemifield(R,Op1,a*y+a^3 *y^9,a*y^(p^m)): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
 end function;
 
+//TO CHECK
 getZP:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
@@ -223,6 +226,8 @@ getZP:=function(R)
   return ZP;
 end function;
 
+
+//TO CHECK
 getG:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
@@ -238,7 +243,7 @@ getG:=function(R)
           s2:=s[(m+1)..2*m];
           a1:=Seqelt(s1,GF(p^m));
           a2:=Seqelt(s2,GF(p^m));
-          b1:=a1^2+2*a1^10;
+          b1:=a1^2-2*a2^10;
           b2:=2*a1*a2+a2^6;
           t1:=Eltseq(b1);
           t2:=Eltseq(b2);
