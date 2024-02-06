@@ -1,144 +1,46 @@
-PresemifieldToDO:=function(PSF)
-  F:=Parent(Rep(Keys(PSF)));
-  return Interpolation([a: a in F],[PSF[{a,a}]/2: a in F]);
-end function;
-
-DOtoPresemifield:=function(f)
-    F:=BaseRing(Parent(f));
-    PSF:=AssociativeArray();
-    for a,b in F do
-        if not {a,b} in Keys(PSF) then
-            PSF[{a,b}]:=Evaluate(f,a+b)-Evaluate(f,a)-Evaluate(f,b);
-        end if;
-    end for;
-
-    return PSF;
-end function;
-
-PresemifieldToSemifield:=function(PSF, e)
+DOToSemifieldPoly:=function(f, e)
     F := Parent(e);
     if IsZero(e) then error "e is zero"; end if;
-    SF:=AssociativeArray();
-    for a,b in F do
-        a0:=PSF[{a,e}];
-        b0:=PSF[{b,e}];
-        if not {a0,b0} in Keys(SF) then
-            SF[{a0,b0}]:=PSF[{a,b}];
-        end if;
-    end for;
-
-    return SF;
+    RR<a,b>:=PolynomialRing(F,2);
+    R0:=PolynomialRing(RR);
+    f:=R0!f;
+    FE:=[a^(#F)-a,b^(#F)-b];
+    Ev:=function(f0,u)
+      r:=Zero(Parent(u));
+      for t in Terms(f0) do
+        r+:=NormalForm(Evaluate(t,u),FE);
+      end for;
+      return r;
+    end function;
+    star:=function(u,v)
+      return Ev(f,u+v)-Ev(f,u)-Ev(f,v);
+    end function;
+    starPsi:=R0!Interpolation([F!star(u,e): u in F],[u: u in F]);
+    asterisk:=function(u,v)
+      return star(Ev(starPsi,u),Ev(starPsi,v));
+    end function;
+    return asterisk(a,b);
 end function;
 
-/* For verifying that the semifields produced by the function above have 1 as the identity */
-VerifyIdentity := function(SF,e)
-	F := Parent(e);
-	for x in F do
-		if SF[{x,e}] ne x then
-			return false;
-		end if;
-	end for;
-
-	return true;
-end function;
-
-/* Checks whether "a" is in the left nucleus of the semifield defined by "f" */
-is_in_left_nucleus := function(SF,a)
-	F := Parent(a);
-	for x in F do
-		for y in F do
-			lhs := SF[{a, SF[{x,y}]}];
-			rhs := SF[{SF[{a,x}], y}];
-			if lhs ne rhs then
-				return false;
-			end if;
-		end for;
-	end for;
-
-	return true;
-end function;
-
-/* Checks whether "a" is in the middle nucleus of the semifield defined by "f" */
-is_in_middle_nucleus := function(SF,a)
-	F := Parent(a);
-	for x in F do
-		for y in F do
-			lhs := SF[{x, SF[{a,y}]}];
-			rhs := SF[{SF[{x,a}], y}];
-			if lhs ne rhs then
-				return false;
-			end if;
-		end for;
-	end for;
-
-	return true;
-end function;
-
-/* Checks whether "a" is in the right nucleus of the semifield defined by "f" */
-is_in_right_nucleus := function(SF,a)
-	F := Parent(a);
-	for x in F do
-		for y in F do
-			lhs := SF[{x, SF[{y,a}]}];
-			rhs := SF[{SF[{x,y}], a}];
-			if lhs ne rhs then
-				return false;
-			end if;
-		end for;
-	end for;
-
-	return true;
-end function;
-
-LeftNucleus := function(SF,cosets)
-    for c in cosets do
-        if is_in_left_nucleus(SF, Random(c)) then
-            return c;
-        end if;
-    end for;
-
-    return [];
-end function;
-
-MiddleNucleus := function(SF,cosets)
-    for c in cosets do
-        if is_in_middle_nucleus(SF, Random(c)) then
-            return c;
-        end if;
-    end for;
-
-    return [];
-end function;
-
-RightNucleus := function(SF,cosets)
-    for c in cosets do
-        if is_in_right_nucleus(SF, Random(c)) then
-            return c;
-        end if;
-    end for;
-
-    return [];
-end function;
-
-/* Precomputation utilities for the subfields for the nuclei invariants */
 PrecomputeSubfields := function(F)
     n := Degree(F);
 
     divisors := Divisors(n);
 
     Reverse(~divisors);
-    Subfields := [{x : x in sub<F|d> | not IsZero(x)} : d in divisors];
+    subfields := [{x : x in sub<F|d> | not IsZero(x)} : d in divisors];
+    sizes := [#s +1: s in subfields];
 
     Reverse(~divisors);
     for i := 1 to #divisors do
         to_remove := {x : x in sub<F|divisors[i]>};
-        
-        for j := 1 to #Subfields-i do
-            Subfields[j] diff:= to_remove;
+
+        for j := 1 to #subfields-i do
+            subfields[j] diff:= to_remove;
         end for;
     end for;
 
-    return Subfields;
+    return subfields, sizes;
 end function;
 
 CombineSubfieldsWithIdentity := function(S, e)
@@ -150,72 +52,44 @@ CombineSubfieldsWithIdentity := function(S, e)
     return combined;
 end function;
 
-/* Compute the Nucleus size from cosets as
- * sum of the size of the cosets to examin
- * increased by three to count for the base field
- * tha is not examined.
- */
-NucleusSizeFromCoset := function(cosets, c)
-    remaining_cosets := cosets[Index(cosets, c)..#cosets];
-    return &+[#c : c in remaining_cosets] + 1;
-end function;
-
-/* Compute the nuclei invariants */
-function NucleiInvariants(f, Subfields, Sizes)
-    F:=BaseRing(Parent(f));
-
-    PSF := DOtoPresemifield(f);
-    SF := PresemifieldToSemifield(PSF, One(F));
-
-    e := PSF[{One(F)}];
-    // assert VerifyIdentity(SF,e);
-
-    cosets := CombineSubfieldsWithIdentity(Subfields, e);
-
-	c := LeftNucleus(SF,cosets);
-    ln := NucleusSizeFromCoset(cosets, c);
-
-	c := MiddleNucleus(SF,cosets);
-    mn := NucleusSizeFromCoset(cosets, c);
-
-	c := RightNucleus(SF,cosets);
-    rn := NucleusSizeFromCoset(cosets, c);
-
-    // p := Characteristic(F);
-    // assert ln ge p;
-    // assert mn ge p;
-    // assert rn ge p;
-
-	return [ln, mn, rn];
-end function;
-
-/* Nuclei invariants for commutative semifields */
-
-/* Compute the nuclei invariants */
-function NucleiInvariantsCommutativeSemifield(f, Subfields)
-    F:=BaseRing(Parent(f));
-
-    PSF := DOtoPresemifield(f);
-    SF := PresemifieldToSemifield(PSF, One(F));
-
-    e := PSF[{One(F)}];
-    // assert VerifyIdentity(SF,e);
-
-    cosets := CombineSubfieldsWithIdentity(Subfields, e);
-
-    // First compute the middle nucleus and select the remaining cosets
-    // for the further search of the left and right nuclei
-	c := MiddleNucleus(SF,cosets);
-    remaining_cosets := cosets[Index(cosets, c)..#cosets];
-    mn := &+[#c : c in remaining_cosets] + 1;
-
-    // Nl = Nr = N is subset of Nm, and we know Nm
-	c := RightNucleus(SF,remaining_cosets);
-    remaining_cosets := cosets[Index(cosets, c)..#cosets];
-    rn := &+[#c : c in remaining_cosets] + 1;
-
-    // assert mn ge p;
-    // assert rn ge p;
-
-	return [rn, mn];
+Nuclei:=function(f, e,subfields, sizes)
+    F := Parent(e);
+    if IsZero(e) then error "e is zero"; end if;
+    RR<a,b,c>:=PolynomialRing(F,3);
+    R0:=PolynomialRing(RR);
+    f:=R0!f;
+    FE:=[a^(#F)-a,b^(#F)-b,c^(#F)-c];
+    Ev:=function(f0,u)
+      r:=Zero(Parent(u));
+      for t in Terms(f0) do
+        r+:=NormalForm(Evaluate(t,u),FE);
+      end for;
+      return r;
+    end function;
+    star:=function(u,v)
+      return Ev(f,u+v)-Ev(f,u)-Ev(f,v);
+    end function;
+    starPsi:=R0!Interpolation([F!star(u,e): u in F],[u: u in F]);
+    asterisk:=function(u,v)
+      return star(Ev(starPsi,u),Ev(starPsi,v));
+    end function;
+    fl:=asterisk(asterisk(a,b),c);
+    fr:=asterisk(a,asterisk(b,c));
+    g:=fl-fr;
+    cosets := CombineSubfieldsWithIdentity(subfields,star(e,e));
+    for cos in cosets do
+        if IsZero(Evaluate(g,[a,Rep(cos),c])) then
+          remaining_cosets := cosets[Index(cosets, cos)..#cosets];
+          mn := sizes[Index(cosets, cos)];
+          break;
+        end if;
+    end for;
+    for cos in remaining_cosets do
+        if IsZero(Evaluate(g,[a,b,Rep(cos)])) then
+          remaining_cosets := cosets[Index(cosets, cos)..#cosets];
+          rn := sizes[Index(cosets, cos)];
+          break;
+        end if;
+    end for;
+    return [rn,mn];
 end function;
