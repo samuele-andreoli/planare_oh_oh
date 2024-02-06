@@ -19,7 +19,7 @@ ComputePartitionUsingInvariant := function(FunctionList, InvariantFunction)
     return InvPartition;
 end function;
 
-/* Partition a list using an equivalence relation. 
+/* Partition a list using an equivalence relation.
  * Expects a procedure that takes a function and a list of functions,
  * and returns a sublist of functions inequivalent to the first.
  */
@@ -69,11 +69,11 @@ part_nuclei_code := [];
 for partition in part_nuclei do
     part_code := ComputePartitionUsingInvariant(partition, AutomoriphismGroupOrderFromFunction);
 
-    part_nuclei_code cat:=part_code;
+    part_nuclei_code cat:=[v : k->v in part_code];
 end for;
 
 Append(~part_nuclei_code, albert);
-
+part_nuclei_code;
 classes := [];
 
 for p in part_nuclei_code do
