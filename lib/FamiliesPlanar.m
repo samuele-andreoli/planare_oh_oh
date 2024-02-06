@@ -209,8 +209,8 @@ getZP:=function(R)
   Op3:=Zero(RR);
   ZP:=[];
   ns:=[a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
-  cop:=[i: i in [1..m]|IsOne(GCD(i,m))];
-  for k:=1 to (m-1) do
+  cop:=[i: i in [1..Floor(m/2)]|IsOne(GCD(i,m))];
+  for k:=1 to Floor(m/2) do
     if IsOdd(m div GCD(m,k)) then
       Op1:=2*y^(p^k+1);
       for i in cop do
