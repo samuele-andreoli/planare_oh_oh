@@ -1,3 +1,4 @@
+//The classification in n=8 could be incomplete
 getFun:=function(n)
   F<a>:=GF(3^n);
   R<x>:=PolynomialRing(F);
@@ -52,6 +53,20 @@ getFun:=function(n)
     	x^14,
      	x^122
 	];
+  elif n eq 8 then
+  	return [
+   	x^2,
+	x^14,
+	x^122,
+	x^1094,
+	a^714 * x^244 + a^2074 * x^84 + x^82,
+	a^264 * x^1458 + x^82,
+	a^418 * x^2188 + a^4338 * x^108 + x^82,
+	x^246+x^82+2 * x^6+x^2,
+	a^3608 * x^1458 + a^3608 * x^738 + a^3810 * x^486 + a^3810 * x^246 + a^3413 * x^162 +a^3413 * x^82 + a^3608 * x^18 + a^3810 * x^6 + a^2565 * x^2,
+	a^164 * x^1458 + a^164 * x^738 + a^950 * x^486 + a^950 * x^246 + a^616 * x^162 +a^616 * x^82 + a^164 * x^18 + a^950 * x^6 + a^6297 * x^2,
+	x^738 + x^82 + 2 * x^18 + x^2
+	];
   end if;
   return [];
 end function;
@@ -61,7 +76,7 @@ load "lib/ccz_equivalence.m";
 load "lib/semifields.m";
 load "lib/dupeq.m";
 load "lib/planar.m";
-for n:=3 to 6 do
+for n:=3 to 8 do
   Fun:=getFun(n);
   printf "\n\ndimension %o\n",n;
   i:=0;
