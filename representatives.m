@@ -64,13 +64,15 @@ load "lib/planar.m";
 for n:=3 to 6 do
   Fun:=getFun(n);
   printf "\n\ndimension %o\n",n;
-  Subfields:=PrecomputeSubfields(GF(3^n));
   i:=0;
+  F:=BaseRing(Parent(Fun[1]));
+  e:=One(F);
+  subfields,sizes:=PrecomputeSubfields(F);
   for f in Fun do
     i +:=1;
     printf "\n%o.%o \t",n,i;
     if isDOPolynomial(f) then
-    	printf "%o ",NucleiInvariantsCommutativeSemifield(f, Subfields);
+    	printf "%o ",Nuclei(f, e,subfields,sizes);
     end if;
     printf "%o ",AutomoriphismGroupOrderFromFunction(f);
     P:=partitionByL2(f);
