@@ -135,9 +135,13 @@ getBHB:=function(R)
       for b in F do
         if not IsZero(b) and Order(b^(p^m-1)) eq orderB then
           g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
-          for o in O do
-            Append(~BHB,x^(p^m+1)+o*g);
-          end for;
+          if IsZero(b^(p^m)+b) then
+            Append(~BHB,x^(p^m+1)+(b^(-1))*g);
+          else
+            for o in O do
+              Append(~BHB,x^(p^m+1)+o*g);
+            end for;
+          end if;
         end if;
       end for;
     end if;
@@ -209,8 +213,8 @@ getZP:=function(R)
   Op3:=Zero(RR);
   ZP:=[];
   ns:=[a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
-  cop:=[i: i in [1..Floor(m/2)]|IsOne(GCD(i,m))];
-  for k:=1 to Floor(m/2) do
+  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))];
+  for k:=1 to m do
     if IsOdd(m div GCD(m,k)) then
       Op1:=2*y^(p^k+1);
       for i in cop do
