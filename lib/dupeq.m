@@ -598,7 +598,7 @@ end function;
 function LinInqeuivalentToF(f, List)
     LinInequiv := [];
 
-    if #List eq 0:
+    if #List eq 0 then
 	    return [f];
     end if;
 
