@@ -3,27 +3,27 @@ load "lib/semifields.m";
 load "lib/dupeq.m";
 
 /* Partition a list of functions through the specified invariant */
-PartitionUsingInvariant := function(FunctionList, InvariantFunction)
-    Partition := AssociativeArray();
+ComputePartitionUsingInvariant := function(FunctionList, InvariantFunction)
+    InvPartition := AssociativeArray();
 
     for f in FunctionList do
         k := InvariantFunction(f);
 
-        if not k in Keys(Partition) then
-            Partition[k] := [];
+        if not k in Keys(InvPartition) then
+            InvPartition[k] := [];
         end if;
 
-        Append(~Partition[k], f);
+        Append(~InvPartition[k], f);
     end for;
 
-    return [v : k->v in Partition];
+    return InvPartition;
 end function;
 
 /* Partition a list using an equivalence relation. 
  * Expects a procedure that takes a function and a list of functions,
  * and returns a sublist of functions inequivalent to the first.
  */
-PartitionUsingEquivalence := function(FunctionList, InequivalentToFunction)
+ComputePartitionUsingEquivalence := function(FunctionList, InequivalentToFunction)
     Partition := [];
 
     while #FunctionList ne 0 do
@@ -42,46 +42,46 @@ end function;
 // Defines
 //
 // p; n; F<a> := GF(p^n); R<x> := PolynomialRing(F);
-load "./expansions/p3_n6_m6_l1_x2";
+load "./expansions/test.m";
 
 /* First partition using the nuclei invariant */
-S := PrecomputeSubfields(F);
+S, sizes := PrecomputeSubfields(F);
 
 compute_nuclei_invariants := function(f)
-    return NucleiInvariantsCommutativeSemifield(f, S);
+    return Nuclei(f, One(F), S, sizes);
 end function;
 
-part_nuclei := PartitionUsingInvariant(Functions, compute_nuclei_invariants);
+part_nuclei := ComputePartitionUsingInvariant(Functions, compute_nuclei_invariants);
+
+// remove x^2
+Remove(~part_nuclei, [p^n,p^n]);
+// remove albert since the automorphisms are stupid long to compute. But keep it for the classification because we don't know if they have other classes
+albert := part_nuclei[[p^2,p^2]];
+Remove(~part_nuclei, [p^2, p^2]);
+
+[<k,v> : k->v in part_nuclei];
+
+part_nuclei := [v : k->v in part_nuclei];
+
 
 part_nuclei_code := [];
 
-for p in part_nuclei do
-    part_code := PartitionUsingInvariant(p, AutomoriphismGroupOrderFromFunction);
+for partition in part_nuclei do
+    part_code := ComputePartitionUsingInvariant(partition, AutomoriphismGroupOrderFromFunction);
 
     part_nuclei_code cat:=part_code;
 end for;
 
-classes := [];
+Append(~part_nuclei_code, albert);
 
-// for p in part_nuclei_code do
-//     new_classes := PartitionUsingEquivalence(p, CCZInequivalentToF);
-
-//     classes cat:= new_classes;
-// end for;
-
-// classes;
-
-// Example lin inequiv 
 classes := [];
 
 for p in part_nuclei_code do
-    new_classes := PartitionUsingEquivalence(p, LinInqeuivalentToF);
+    new_classes := ComputePartitionUsingEquivalence(p, LinInqeuivalentToF);
 
     classes cat:= new_classes;
 end for;
 
 classes;
-
-// Example classify families
 
 /* END of user modifiable section */

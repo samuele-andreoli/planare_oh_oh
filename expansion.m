@@ -17,7 +17,7 @@ f := 2;
 
 /* End of user modifiabile section */
 
-SetOutputFile(Sprintf("./expansions/p%o_n%o_m%o_l%o_x%o", p, n, m, l, f));
+SetOutputFile(Sprintf("./expansions/p%o_n%o_x%o_l%o_m%o", p, n, f, l, m));
 
 F<a> := GF(p^n);
 R<x> := PolynomialRing(F);
