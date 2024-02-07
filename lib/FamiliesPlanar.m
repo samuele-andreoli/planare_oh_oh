@@ -144,10 +144,10 @@ getBHB:=function(R)
   return BHB;
 end function;
 
-//Op1,Op2,Op3 are polynomials
+//Op,Op1,Op2 are polynomials
 //The semifield is defined over F^2
 //These are the semifields that are defined similarly
-getFunFromSpecialSemifield:=function(R,Op1,Op2,Op3)
+getFunFromSpecialSemifield:=function(R,Op,Op1,Op2)
   F:=BaseRing(R);
   p:=Characteristic(F);
   n:=Degree(F);
@@ -160,8 +160,8 @@ getFunFromSpecialSemifield:=function(R,Op1,Op2,Op3)
           s2:=s[(m+1)..2*m];
           a1:=Seqelt(s1,GF(p^m));
           a2:=Seqelt(s2,GF(p^m));
-          b1:=Evaluate(Op1,a1)+Evaluate(Op2,a2);
-          b2:=2*a1*a2+Evaluate(Op3,a2^2);
+          b1:=Evaluate(Op,a1)+Evaluate(Op1,Evaluate(Op,a2) );
+          b2:=2*a1*a2+Evaluate(Op2,a2^2);
           t1:=Eltseq(b1);
           t2:=Eltseq(b2);
           Append(~Out,Seqelt(t1 cat t2,GF(p^(2*m))));
@@ -179,9 +179,10 @@ getD:=function(R)
   end if;
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
-  Op1:=y^2;
-  Op3:=Zero(RR);
-  return [getFunFromSpecialSemifield(R,Op1,(a*y^(p^m))^2 ,Op3): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
+  Op:=y^2;
+  Op2:=Zero(RR);
+  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))];
+  return [getFunFromSpecialSemifield(R,Op,(a*y^(p^i))^2 ,Op2): a in GF(p^m), i in cop|not IsZero(a) and not IsSquare(a)];
 end function;
 
 //TO CHECK
@@ -194,8 +195,8 @@ getCG:=function(R)
   end if;
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
-  Op1:=y^2;
-  return [getFunFromSpecialSemifield(R,Op1,a*y+a^3 *y^9,a*y^(p^m)): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
+  Op:=y^2;
+  return [getFunFromSpecialSemifield(R,Op1,ay^3, a*y+a^3 *y^9 ): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
 end function;
 
 //TO CHECK
@@ -208,17 +209,17 @@ getZP:=function(R)
   end if;
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
-  Op3:=Zero(RR);
+  Op2:=Zero(RR);
   ZP:=[];
   ns:=[a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
   cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))];
   for k:=1 to m do
     if IsOdd(m div GCD(m,k)) then
-      Op1:=2*y^(p^k+1);
+      Op:=2*y^(p^k+1);
       for i in cop do
         for a in ns do
-          Op2:=a*y^(p^i);
-          Append(~ZP,getFunFromSpecialSemifield(R,Op1,Op2,Op3));
+          Op1:=a*y^(p^i);
+          Append(~ZP,getFunFromSpecialSemifield(R,Op,Op1,Op2));
         end for;
       end for;
     end if;
@@ -227,12 +228,11 @@ getZP:=function(R)
 end function;
 
 
-//TO CHECK
 getG:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
   n:=Degree(F);
-  if p ne 3 or not IsDivisibleBy(n,2) then
+  if (n lt 6) or p ne 3 or not IsDivisibleBy(n,2) or IsEven(n div 2) then
     return [];
   end if;
   m:=n div 2;
