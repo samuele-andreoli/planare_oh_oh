@@ -28,6 +28,7 @@ DOToSemifieldPoly:=function(f, e)
     return asterisk(a,b);
 end function;
 
+/*
 PrecomputeSubfields := function(F)
     n := Degree(F);
 
@@ -48,9 +49,9 @@ PrecomputeSubfields := function(F)
 
     return subfields, sizes;
 end function;
+*/
 
-
-Nuclei:=function(f, e,subfields, sizes)
+Nuclei:=function(f, e)
     assert not IsZero(e);
 
     F := Parent(e);
@@ -79,9 +80,24 @@ Nuclei:=function(f, e,subfields, sizes)
 
     // Associativity equation
     fl := asterisk(asterisk(a,b),c);
-    fr := asterisk(a,asterisk(b,c));
+    fr := Evaluate(fl,[b,c,a]);
     g  := fl-fr;
-
+    rn:=0;
+    bolRn:=true;
+    //Max order of a Nuclei
+    D:=Divisors(n);
+    MaxOrder:=p^D[#D-1]+1;
+    for u in F do
+        if IsZero(Evaluate(g,[a,b,u])) then
+            rn +:=1;
+            mn +:=1;
+        elif IsZero(Evaluate(g,[a,u,b])) then
+            mn +:=1;
+        elif mn eq MaxOrder then
+            return [p^n,p^n];
+        end if;
+    end for;
+    /*
     // Compute the commutative cosets for the nuclei search
     identity := star(e,e);
     cosets :=  [{identity * si : si in s} : s in subfields];
@@ -104,6 +120,6 @@ Nuclei:=function(f, e,subfields, sizes)
             break;
         end if;
     end for;
-
+    */
     return [rn,mn];
 end function;
