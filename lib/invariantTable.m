@@ -12,8 +12,6 @@ computeInvariantTable := procedure(n)
     F<a>:=BaseRing(R);
     e:=One(F);
 
-    subfields,sizes:=PrecomputeSubfields(F);
-
     invariantTable := AssociativeArray();
 
     for f in FuctionList do
