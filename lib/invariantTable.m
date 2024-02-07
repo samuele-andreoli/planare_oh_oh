@@ -5,8 +5,7 @@ load "lib/semifields.m";
 load "lib/planar.m";
 
 
-computeInvariantTable := procedure()
-    n := 6;
+computeInvariantTable := procedure(n)
 
     FuctionList:=getFun(n);
     R<x>:=Parent(FuctionList[1]);
@@ -24,7 +23,7 @@ computeInvariantTable := procedure()
         end if;
 
         order := "NA";
-        if (n lt 6) or ((n eq 6) and not N in {[3^6,3^6],[3^(2),3^(2)]}) then
+        if ((n eq 6) and not N in {[3^6,3^6],[3^(2),3^(2)]}) then
             order := AutomoriphismGroupOrderFromFunction(f);
         end if;
 
