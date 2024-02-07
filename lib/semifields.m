@@ -20,7 +20,6 @@ DOToSemifieldPoly:=function(f, e)
 
     starPsi:=R0!Interpolation([F!star(u,e): u in F],[u: u in F]);
 
-    // Construct polynomials for the * and star products
     asterisk:=function(u,v)
         return star(EvaluateMod(starPsi,u),EvaluateMod(starPsi,v));
     end function;
