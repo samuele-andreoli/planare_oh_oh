@@ -70,6 +70,7 @@ getFun:=function(n)
   return [];
 end function;
 
+
 /*
 load "lib/ccz_equivalence.m";
 load "lib/semifields.m";
@@ -81,13 +82,12 @@ for n:=3 to 8 do
   i:=0;
   F:=BaseRing(Parent(Fun[1]));
   e:=One(F);
-  subfields,sizes:=PrecomputeSubfields(F);
   for f in Fun do
     i +:=1;
     printf "\n%o.%o \t",n,i;
     N:=[0,0];
     if isDOPolynomial(f) then
-    	N:=Nuclei(f, e,subfields,sizes);
+    	N:=Nuclei(f, e);
     end if;
     printf "%o ",N;
     if (n lt 6) or ((n eq 6) and not N in {[3^6,3^6],[3^(2),3^(2)]}) then
