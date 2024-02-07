@@ -92,13 +92,13 @@ Nuclei:=function(f, e)
     mn:=0;
     rn:=0;
     for u in F do
-        if IsZero(Evaluate(g,[a,b,u])) then
+        if mn eq MaxOrder then
+            return [#F,#F];
+        elif IsZero(Evaluate(g,[a,b,u])) then
             rn +:=1;
             mn +:=1;
         elif IsZero(Evaluate(g,[a,u,b])) then
             mn +:=1;
-        elif mn eq MaxOrder then
-            return [#F,#F];
         end if;
     end for;
     /*
