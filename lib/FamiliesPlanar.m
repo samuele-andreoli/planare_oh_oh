@@ -182,7 +182,7 @@ getD:=function(R)
   Op:=y^2;
   Op2:=Zero(RR);
   cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))];
-  return [getFunFromSpecialSemifield(R,Op,(a*y^(p^i))^2 ,Op2): a in GF(p^m), i in cop|not IsZero(a) and not IsSquare(a)];
+  return [getFunFromSpecialSemifield(R,Op,a*y^(p^i) ,Op2): a in GF(p^m), i in cop|not IsZero(a) and not IsSquare(a)];
 end function;
 
 //TO CHECK
