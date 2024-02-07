@@ -28,29 +28,6 @@ DOToSemifieldPoly:=function(f, e)
     return asterisk(a,b);
 end function;
 
-/*
-PrecomputeSubfields := function(F)
-    n := Degree(F);
-
-    divisors := Divisors(n);
-
-    Reverse(~divisors);
-    subfields := [{x : x in sub<F|d> | not IsZero(x)} : d in divisors];
-    sizes := [#s +1: s in subfields];
-
-    Reverse(~divisors);
-    for i := 1 to #divisors do
-        to_remove := {x : x in sub<F|divisors[i]>};
-
-        for j := 1 to #subfields-i do
-            subfields[j] diff:= to_remove;
-        end for;
-    end for;
-
-    return subfields, sizes;
-end function;
-*/
-
 Nuclei:=function(f, e)
     assert not IsZero(e);
 
@@ -82,48 +59,26 @@ Nuclei:=function(f, e)
     fl := asterisk(asterisk(a,b),c);
     fr := Evaluate(fl,[b,c,a]);
     g  := fl-fr;
-    rn:=0;
-    bolRn:=true;
-    //Max order of a Nuclei
-    n:=Degree(F);
+
+    // Max order of a non trivial (Fq) nucleus
     p:=Characteristic(F);
-    D:=Divisors(n);
+    D:=Divisors(Degree(F));
     MaxOrder:=p^D[#D-1]+1;
+
     mn:=0;
     rn:=0;
     for u in F do
+        if mn eq MaxOrder then
+            return [#F,#F];
+        end if;
+
         if IsZero(Evaluate(g,[a,b,u])) then
             rn +:=1;
             mn +:=1;
         elif IsZero(Evaluate(g,[a,u,b])) then
             mn +:=1;
-        elif mn eq MaxOrder then
-            return [#F,#F];
-        end if;
-    end for;
-    /*
-    // Compute the commutative cosets for the nuclei search
-    identity := star(e,e);
-    cosets :=  [{identity * si : si in s} : s in subfields];
-
-    // Check smaller and smaller cosets to find the middle nucleus
-    for cos in cosets do
-        if IsZero(Evaluate(g,[a,Rep(cos),c])) then
-            remaining_cosets := cosets[Index(cosets, cos)..#cosets];
-            mn := sizes[Index(cosets, cos)];
-            break;
         end if;
     end for;
 
-    // Check cosets subsets of the middle nucleus to find the left/right nucleus
-    // since N = Nl = Nr is subset of Nm for commutative semifields.
-    for cos in remaining_cosets do
-        if IsZero(Evaluate(g,[a,b,Rep(cos)])) then
-            remaining_cosets := cosets[Index(cosets, cos)..#cosets];
-            rn := sizes[Index(cosets, cos)];
-            break;
-        end if;
-    end for;
-    */
     return [rn,mn];
 end function;

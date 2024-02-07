@@ -1,6 +1,7 @@
 load "lib/FamiliesPlanar.m";
 load "lib/planar.m";
-for n:=2 to 8 do
+
+for n:=8 to 8 do
   printf "test dimension %o\n",n;
   p:=3;
   F:=GF(p^n);

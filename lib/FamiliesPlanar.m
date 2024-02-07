@@ -1,38 +1,6 @@
 //Semifields are AssociativeArrays
 //Functions are polynomials
 
-
-PresemifieldToDO:=function(PSF)
-  F:=Parent(Rep(Keys(PSF)));
-  return Interpolation([a: a in F],[PSF[{a,a}]/2: a in F]);
-end function;
-
-
-DOtoPresemifield:=function(f)
-  F:=BaseRing(Parent(f));
-  PSF:=AssociativeArray();
-  for a,b in F do
-    if not {a,b} in Keys(PSF) then
-      PSF[{a,b}]:=Evaluate(f,a+b)-Evaluate(f,a)-Evaluate(f,b);
-    end if;
-  end for;
-  return PSF;
-end function;
-
-PresemifieldToSemifield:=function(PSF,e)
-  if IsZero(e) then error "e is zero"; end if;
-  SF:=AssociativeArray();
-  F:=Parent(e);
-  for a,b in F do
-    a0:=PSF[{a,e}];
-    b0:=PSF[{b,e}];
-    if not {a0,b0} in Keys(SF) then
-      SF[{a0,b0}]:=PSF[{a,b}];
-    end if;
-  end for;
-  return SF;
-end function;
-
 getFF:=function(R)
   x:=R.1;
   return [x^2];
