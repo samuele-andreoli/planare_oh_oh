@@ -169,7 +169,7 @@ getFunFromSpecialSemifield:=function(R,Op,Op1,Op2)
   return R!Interpolation([a: a in GF(p^(2*m))],Out);
 end function;
 
-//TO CHECK
+
 getD:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
@@ -185,7 +185,6 @@ getD:=function(R)
   return [getFunFromSpecialSemifield(R,Op,a*y^(p^i) ,Op2): a in GF(p^m), i in cop|not IsZero(a) and not IsSquare(a)];
 end function;
 
-//TO CHECK
 getCG:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
@@ -196,10 +195,9 @@ getCG:=function(R)
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
   Op:=y^2;
-  return [getFunFromSpecialSemifield(R,Op,a*y^3, a*y+a^3 *y^9 ): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
+  return [getFunFromSpecialSemifield(R,Op,a*y+ a^3 *y^9 ,a*y^3 ): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
 end function;
 
-//TO CHECK
 getZP:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
