@@ -6,8 +6,16 @@ for n:=2 to 8 do
   F:=GF(p^n);
   R:=PolynomialRing(F);
   Fam:=getAllDOPlanar(R);
-  FFs:=getFFs(F);
+  FFs:=getD(R);
   for f in Fam do
-    if not fastIsPlanarDOPoly(f,FFs) then error""; end if;
+    if not fastIsPlanarDOPoly(f,FFs) then error Sprintf("D %o", f); end if;
+  end for;
+  FFs:=getCG(R);
+  for f in Fam do
+    if not fastIsPlanarDOPoly(f,FFs) then error Sprintf("CG %o", f); end if;
+  end for;
+  FFs:=getZP(R);
+  for f in Fam do
+    if not fastIsPlanarDOPoly(f,FFs) then error Sprintf("ZP %o", f); end if;
   end for;
 end for;
