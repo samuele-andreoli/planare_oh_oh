@@ -19,7 +19,7 @@ computeInvariantTable := procedure(n)
     for f in FuctionList do
         N:=[0,0];
         if isDOPolynomial(f) then
-            N:=Nuclei(f, e,subfields,sizes);
+            N:=Nuclei(f, e);
         end if;
 
         order := "NA";
