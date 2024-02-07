@@ -85,8 +85,12 @@ Nuclei:=function(f, e)
     rn:=0;
     bolRn:=true;
     //Max order of a Nuclei
+    n:=Degree(F);
+    p:=Characteristic(F);
     D:=Divisors(n);
     MaxOrder:=p^D[#D-1]+1;
+    mn:=0;
+    rn:=0;
     for u in F do
         if IsZero(Evaluate(g,[a,b,u])) then
             rn +:=1;
@@ -94,7 +98,7 @@ Nuclei:=function(f, e)
         elif IsZero(Evaluate(g,[a,u,b])) then
             mn +:=1;
         elif mn eq MaxOrder then
-            return [p^n,p^n];
+            return [#F,#F];
         end if;
     end for;
     /*
