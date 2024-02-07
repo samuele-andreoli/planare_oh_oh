@@ -196,7 +196,7 @@ getCG:=function(R)
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
   Op:=y^2;
-  return [getFunFromSpecialSemifield(R,Op1,ay^3, a*y+a^3 *y^9 ): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
+  return [getFunFromSpecialSemifield(R,Op,a*y^3, a*y+a^3 *y^9 ): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
 end function;
 
 //TO CHECK
