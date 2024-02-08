@@ -46,10 +46,26 @@ getZKW:=function(R)
   end if;
   k:=n div 3;
   ZKW:=[];
+  reduceCoefficients:=function(U,s)
+    for i:=1 to #U do
+      if i gt #U then
+        break;
+      else
+        for a in F do
+          j:=Index(U,a^((p^n-2)*(p^s+1)) *U[i]*a^(p^k+p^(2*k+s)) );
+          if j gt i then
+            Remove(~U,j);
+          end if;
+        end for;
+      end if;
+    end for;
+    return U;
+  end function;
   U:=[u: u in F|not IsZero(u) and Order(u) eq (p^(2*k)+p^k+1)];
   for s:=1 to n do
     if IsZero( (k+s) mod 3) and IsOdd(n div GCD(s,n)) then
-      for u in U do
+      U0:=reduceCoefficients(U,s);
+      for u in U0 do
         Append(~ZKW,x^(p^s+1)-u*x^(p^k+p^(2*k+s)));
       end for;
     end if;
@@ -67,10 +83,26 @@ getB:=function(R)
   end if;
   k:=n div 4;
   B:=[];
+  reduceCoefficients:=function(U,s)
+    for i:=1 to #U do
+      if i gt #U then
+        break;
+      else
+        for a in F do
+          j:=Index(U,a^((p^n-2)*(p^s+1)) *U[i]*a^(p^(3*k)+p^(k+s)) );
+          if j gt i then
+            Remove(~U,j);
+          end if;
+        end for;
+      end if;
+    end for;
+    return U;
+  end function;
   U:=[u: u in F|not IsZero(u) and Order(u) eq (p^(3*k)+p^(2*k)+p^k+1)];
-  for s:=1 to n do
+  for s:=1 to (3*k) do
     if IsOne( p^s mod 4) and IsOdd((2*k) div GCD(2*k,s)) then
-      for u in U do
+      U0:=reduceCoefficients(U,s);
+      for u in U0 do
         Append(~B,x^(p^s+1)-u*x^(p^(3*k)+p^(k+s)));
       end for;
     end if;
@@ -149,10 +181,11 @@ getD:=function(R)
   end if;
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
+  ns:=Rep({a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)});
   Op:=y^2;
   Op2:=Zero(RR);
-  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))];
-  return [getFunFromSpecialSemifield(R,Op,a*y^(p^i) ,Op2): a in GF(p^m), i in cop|not IsZero(a) and not IsSquare(a)];
+  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))] cat [0];
+  return [getFunFromSpecialSemifield(R,Op,ns*y^(p^i) ,Op2): i in cop];
 end function;
 
 getCG:=function(R)
@@ -179,16 +212,14 @@ getZP:=function(R)
   RR<y>:=PolynomialRing(GF(p^m));
   Op2:=Zero(RR);
   ZP:=[];
-  ns:=[a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
-  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))];
+  ns:=Rep({a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)});
+  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))] cat [0];
   for k:=1 to m do
     if IsOdd(m div GCD(m,k)) then
       Op:=2*y^(p^k+1);
       for i in cop do
-        for a in ns do
-          Op1:=a*y^(p^i);
-          Append(~ZP,getFunFromSpecialSemifield(R,Op,Op1,Op2));
-        end for;
+        Op1:=ns*y^(p^i);
+        Append(~ZP,getFunFromSpecialSemifield(R,Op,Op1,Op2));
       end for;
     end if;
   end for;
