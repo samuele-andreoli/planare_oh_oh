@@ -71,7 +71,7 @@ for f in ZP do
 end for;
 
 
-//D
+//D OK
 f1:=myRep[8];
 f2:=myRep[9];
 f3:=myRep[10];
