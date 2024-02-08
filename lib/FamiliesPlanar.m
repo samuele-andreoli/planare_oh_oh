@@ -78,6 +78,7 @@ getB:=function(R)
   return B;
 end function;
 
+
 getBHB:=function(R)
   x:=R.1;
   F:=BaseRing(R);
@@ -105,6 +106,7 @@ getBHB:=function(R)
         if not IsZero(b) and not (IsDivisibleBy(orderB,Order(b^(p^m-1)))) then
           g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
           Append(~BHB,x^(p^m+1)+o*g);
+          break;
         end if;
       end for;
     end if;
