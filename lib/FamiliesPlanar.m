@@ -184,7 +184,7 @@ getD:=function(R)
   ns:=Rep({a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)});
   Op:=y^2;
   Op2:=Zero(RR);
-  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))];
+  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))] cat [0];
   return [getFunFromSpecialSemifield(R,Op,ns*y^(p^i) ,Op2): i in cop];
 end function;
 
