@@ -20,7 +20,7 @@ for f in Functions do
     end if;
 
     order := "NA";
-    if (n le 6) or ((n eq 6) and not N in {[p^n,p^n],[p^2,p^2]}) then
+    if (n lt 6) or ((n eq 6) and not N in {[p^n,p^n],[p^2,p^2]}) then
         order := AutomoriphismGroupOrderFromFunction(f);
     end if;
 

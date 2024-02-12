@@ -30,7 +30,7 @@ E := {p^i + p^j : i,j in [0..n-1] | i ge j};
 Exclude(~E, f);
 
 CoeffSpace := CartesianPower(S, l);
-ExpSpace   := CartesianPower(E, l);
+ExpSpace   := Subsets(E, l);
 
 SearchSpace := CartesianProduct(CoeffSpace, ExpSpace);
 
@@ -40,22 +40,23 @@ printf "Functions := [";
 
 FFs:=getFFs(F);
 
-for s in SearchSpace do
-    c := s[1];
-    e := s[2];
+for e in ExpSpace do
+    e := [ei : ei in s[2]];
 
-    candidate := [F!0: x in [1..p^n]];
-    candidate[f+1] := F!1;
-    
-    for i in [1..l] do
-        candidate[e[i]+1] := c[i];
+    for c in CoeffSpace do
+        candidate := [Zero(F): x in [1..p^n]];
+        candidate[f+1] := One(F);
+        
+        for i in [1..l] do
+            candidate[e[i]+1] := c[i];
+        end for;
+
+        candidate := R!candidate;
+
+        if fastIsPlanarDOPoly(candidate,FFs) then
+            printf "%o,", candidate;
+        end if;
     end for;
-
-    candidate := R!candidate;
-
-    if fastIsPlanarDOPoly(candidate,FFs) then
-        printf "%o,", candidate;
-    end if;
 end for;
 
 printf("];");
