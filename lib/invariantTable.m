@@ -180,13 +180,13 @@ getOrbitsTable := function(n)
         orbitsTable[a^91 * x^486 + a^182 * x^90 + 2 * x^10 + x^2] := novelOrbit;
         orbitsTable[a^273 * x^486 + a^182 * x^90 + 2 * x^10 + x^2] := novelOrbit;
         orbitsTable[a^273 * x^246 + a^182 * x^82 + a^91 * x^6 + x^2] := novelOrbit;
-elif n eq 7 then
+    elif n eq 7 then
         orbitsTable[x^2] := {One(F)};
         orbitsTable[x^4] := {One(F)};
         orbitsTable[x^10] := {One(F)};
         orbitsTable[x^28] := {One(F)};
-        orbitsTable[x^10 +x^6+2*x^2] := {};
-        orbitsTable[x^10 +2*x^6+2*x^2] := {};
+        // orbitsTable[x^10 +x^6+2*x^2] := {}; TODO
+        // orbitsTable[x^10 +2*x^6+2*x^2] := {}; TODO
         orbitsTable[x^14] := {One(F)};
         orbitsTable[x^122] := {One(F)};
     elif n eq 8 then
