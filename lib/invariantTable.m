@@ -181,11 +181,25 @@ getOrbitsTable := function(n)
         orbitsTable[a^273 * x^486 + a^182 * x^90 + 2 * x^10 + x^2] := novelOrbit;
         orbitsTable[a^273 * x^246 + a^182 * x^82 + a^91 * x^6 + x^2] := novelOrbit;
     elif n eq 7 then
-        // TODO
-        error "not implemented yet";
+        orbitsTable[x^2] := {One(F)};
+        orbitsTable[x^4] := {One(F)};
+        orbitsTable[x^10] := {One(F)};
+        orbitsTable[x^28] := {One(F)};
+        orbitsTable[x^10 +x^6+2*x^2] := //??
+        orbitsTable[x^10 +2*x^6+2*x^2] := //??
+        orbitsTable[x^14] := {One(F)};
+        orbitsTable[x^122] := {One(F)};
     elif n eq 8 then
-        // TODO
-        error "not implemented yet"; 
+        orbitsTable[x^2]:={One(F)};
+        orbitsTable[x^14]:={One(F),a};
+        orbitsTable[x^122]:={One(F),a};
+        orbitsTable[x^1094]:={One(F),a};
+        orbitsTable[a^714 * x^244 + a^2074 * x^84 + x^82]:={a^i: i in [0, 1, 2, 4, 5, 29]};
+        orbitsTable[a^264 * x^1458 + x^82]:={a^i: i in [0, 1, 2, 3, 4, 7]};
+        orbitsTable[a^418 * x^2188 + a^4338 * x^108 + x^82]:={a^i: i in [0, 1, 2, 3, 6, 35]};
+        orbitsTable[x^246+x^82+2 * x^6+x^2]:={};//??
+        orbitsTable[a^3608 * x^1458 + a^3608 * x^738 + a^3810 * x^486 + a^3810 * x^246 + a^3413 * x^162 +a^3413 * x^82 + a^3608 * x^18 + a^3810 * x^6 + a^2565 * x^2]:={a^i: i in [0, 1, 2, 4, 7, 10, 13, 14, 17, 20, 41, 43]};
+        orbitsTable[a^164 * x^1458 + a^164 * x^738 + a^950 * x^486 + a^950 * x^246 + a^616 * x^162 +a^616 * x^82 + a^164 * x^18 + a^950 * x^6 + a^6297 * x^2]:={};//?
     end if;
 
     return orbitsTable;
