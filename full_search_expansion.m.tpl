@@ -41,6 +41,11 @@ Exclude(~E, f);
 CoeffSpace := CartesianPower(S, l);
 ExpSpace   := Subsets(E, l);
 
+// Cyclotomic coset of the monomial used for expansion.
+// If all chosen coefficients lie in it, then the generated
+// polynomial is equivalent to a monomial.
+cyclotomic_coset := {f * 3^i : i in [0,n-1]};
+
 generatedPlanarFunctions := [];
 
 expansion_filename := Sprintf("expansions/%o", filename);
@@ -50,6 +55,10 @@ print "Start expansion";
 timeExpansion := Cputime();
 
 for exp in ExpSpace do
+    if exp subset cyclotomic_coset then
+        continue;
+    end if;
+
     e := [ei : ei in exp];
 
     for c in CoeffSpace do
