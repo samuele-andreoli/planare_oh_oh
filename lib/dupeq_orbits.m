@@ -314,6 +314,37 @@ function dupeq_fixed_l2(fTT,finvTT,gTT,ginvTT,fixX,fixY)
 	return process_fix_l2(fTT,gTT,finvTT,ginvTT,L1,L2,[],fixX,fixY);
 end function;
 
+function trivialPartition(f)
+	F := BaseRing(Parent(f));
+	n := Degree(F);
+	p := Characteristic(F);
+
+	coeff := {c : c in Coefficients(f)};
+
+	subfields := {sub<F|d> : d in Divisors(n)};
+	for s in subfields do
+		if coeff subset s then
+			d := Degree(s);
+			m := n div d;
+
+			break;
+		end if;
+	end for;
+
+	elements := {x:x in F|not IsZero(x)};	
+	orbits := {};
+
+	while #elements gt 0 do
+		x := Rep(elements);
+		orbit := { c*x^(3^(d*i)) : c in {1,2}, i in [0..m-1] };
+
+		elements diff:= orbit;
+		Include(~orbits, orbit);
+	end while;
+
+	return orbits;
+end function;
+
 /* Partitions the non-zero elements of the finite field into orbits w.r.t. L2, as described above */
 function partitionByL2(f)
 	F := BaseRing(Parent(f));
@@ -333,40 +364,135 @@ function partitionByL2(f)
 		finvTT[fy] := Min({x,-x});
 	end for;
 
+	remaining := trivialPartition(f);
+
 	while #remaining gt 0 do
-		e := Rep(remaining);
-		orbit := {e,-e};
+		#remaining;
+
+		base_orbit := Rep(remaining);
+		orbit := base_orbit;
+		Exclude(~remaining, orbit);
+
+		e := Rep(base_orbit);
 
 		// Take advantage of known L2s
 		old_orbit_size := 0;
 		while #orbit gt old_orbit_size do
 			old_orbit_size := #orbit;
-			orbit join:= {l[x] : x in orbit, l in L2s};
+		
+			for x in orbit do
+				for l in L2s do
+					lx := l[x];
+					if not lx in orbit then
+						out_new_orbit := {};
+						for new_orbit in remaining do
+							if lx in new_orbit then
+								orbit join:= new_orbit;
+								out_new_orbit := new_orbit;
+								break;
+							end if;
+						end for;
+
+						// print "pre";
+						// out_new_orbit;
+						Exclude(~remaining, out_new_orbit);
+					end if;
+				end for;
+			end for;
 		end while;
 
-		for target in remaining do
-			if target in orbit then
+		next_remaining := {};
+		while #remaining gt 0 do
+			target_orbit := Rep(remaining);
+			Exclude(~remaining, target_orbit);
+			
+			success, l2 := dupeq_fixed_l2(fTT, finvTT, fTT, finvTT, e, Rep(target_orbit));
+
+			if not success then
+				Include(~next_remaining, target_orbit);
 				continue;
 			end if;
 
-			doesEmapToTarget, l2 := dupeq_fixed_l2(fTT, finvTT, fTT, finvTT, e, target);
+			// We found a new element in the orbit
+			Append(~L2s,l2);
+
+			orbit join:= target_orbit;
 			
-			if doesEmapToTarget then
-				Append(~L2s,l2);
-				newElements := {e, -e, target, -target};
+			old_orbit_size := 0;
+			while #orbit gt old_orbit_size do
+				old_orbit_size := #orbit;
 
-				countBefore := 0;
-				while #newElements gt countBefore do
-					countBefore := #newElements;
-					newElements join:= {l2[x] : x in newElements, l2 in L2s};
-				end while;
+				for x in orbit do
+					for l in L2s do
+						lx := l[x];
+						if not lx in orbit then
+							out_new_orbit := {};
+							for new_orbit in remaining do
+								if lx in new_orbit then
+									orbit join:= new_orbit;
+									out_new_orbit := new_orbit;
+									break;
+								end if;
+							end for;
 
-				orbit join:= newElements;
-			end if;
-		end for;
+							// print "main";
+							// out_new_orbit;
+							Exclude(~remaining, out_new_orbit);
+						end if;
+					end for;
+				end for;
+			end while;
+		end while;
 
 		Append(~orbits, orbit);
-		remaining diff:= orbit;
+		remaining := next_remaining;
+
+		// for target_orbit in remaining do
+		// 	if target_orbit in to_remove then
+		// 		continue;
+		// 	end if;
+
+		// 	target := Rep(target_orbit);
+
+		// 	doesEmapToTarget, l2 := dupeq_fixed_l2(fTT, finvTT, fTT, finvTT, e, target);
+			
+		// 	if doesEmapToTarget then
+		// 		Append(~L2s,l2);
+				
+		// 		newElements := target_orbit;
+		// 		Include(~to_remove, target_orbit);
+
+		// 		countBefore := 0;
+		// 		while #newElements gt countBefore do
+		// 			countBefore := #newElements;
+				
+		// 			for x in newElements do
+		// 				for l in L2s do
+		// 					lx := l[x];
+		// 					if not lx in newElements then
+		// 						out_new_orbit := {};
+		// 						for new_orbit in remaining do
+		// 							if lx in new_orbit then
+		// 								newElements join:= new_orbit;
+		// 								out_new_orbit := new_orbit;
+		// 								break;
+		// 							end if;
+		// 						end for;
+
+		// 						print "main";
+		// 						out_new_orbit;
+		// 						Include(~to_remove, out_new_orbit);
+		// 					end if;
+		// 				end for;
+		// 			end for;
+		// 		end while;
+
+		// 		orbit join:= newElements;
+		// 	end if;
+		// end for;
+
+		// Append(~orbits, orbit);
+		// remaining diff:= to_remove;
 	end while;
 
 	return orbits;
