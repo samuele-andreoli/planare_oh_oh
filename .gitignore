@@ -1,3 +1,7 @@
 expansions/*
+logs/*
+equivalence_test/*
+inequivalent/*
+
 .DS_Store
 _*
