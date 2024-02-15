@@ -22,25 +22,23 @@ for n:=2 to 8 do
 			if IsEven(Floor(Log(3,CardN[2])/Log(3,CardN[1]))) then
 				printf"CH candidate\t";
 				flag:=false;
-				for e in E do
-					starPsi := Interpolation([star(u,e): u in F],[u: u in F]);
+				e:=One(F);
+				starPsi := Interpolation([star(u,e): u in F],[u: u in F]);
 
-					asterisk := function(u,v)
-						  return star(Evaluate(starPsi,u),Evaluate(starPsi,v));
-					end function;
-					N,Nm:=getNuclei(f,e);
-					for b in Nm diff N do
-						f1:=Interpolation([u: u in F],[asterisk(asterisk(b,u),u): u in F]);
-						//the second dupeq is to double check
-						if not dupeq_with_l2_representatives(f,f1,OrbitsTable[f]) and not dupeq(f,f1) then
-						  printf "splits\t";
-						  if not isPlanar(f1) then error""; end if;
-						  f1;
-						  flag:=true;
-						  break;
-						end if;
-					end for;
-					if flag then break; end if;
+				asterisk := function(u,v)
+					  return star(Evaluate(starPsi,u),Evaluate(starPsi,v));
+				end function;
+				N,Nm:=getNuclei(f,e);
+				for b in (Nm diff N) do
+					f1:=Interpolation([u: u in F],[asterisk(asterisk(b,u),u): u in F]);
+					//the second dupeq is to double check
+					if not dupeq_with_l2_representatives(f,f1,OrbitsTable[f]) and not dupeq(f,f1) then
+					  printf "splits\t";
+					  if not isPlanar(f1) then error""; end if;
+					  f1;
+					  flag:=true;
+					  break;
+					end if;
 				end for;
 				if not flag then
 					printf "does not split";
