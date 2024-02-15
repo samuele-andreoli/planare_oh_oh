@@ -82,7 +82,7 @@ Nuclei:=function(f, e)
     return [rn,mn];
 end function;
 
-Nuclei:=function(f, e)
+getNuclei:=function(f, e)
     assert not IsZero(e);
 
     F := Parent(e);
