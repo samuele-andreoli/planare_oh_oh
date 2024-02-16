@@ -37,7 +37,7 @@ function firstFreel2(TT)
 	return Zero(F);
 end function;
 
-function domainl2(f,g,L1,L2,P,b)
+function codomainl2(L2, b)
 	/* The possible values of l2 at b are those that lie outside of the linear subspace
 	 * spanned by the outputs of the assigned values
 	 */
@@ -47,21 +47,17 @@ function domainl2(f,g,L1,L2,P,b)
 	 * basis elements and generate the spanned subspace.
 	 */
 
-	basis_elements := [];
-
 	F := Parent(b);
 	p := Characteristic(F);
 	n := Degree(F);
 
 	B := Basis(F);
-
-
 	basis := B[1..Index(B,b)-1];
 
 	if #basis eq 0 then
 		return [ x : x in F | x ne 0 ];
 	else
-		span_bi := { SequenceToElement( Eltseq(v), F) : v in sub<VectorSpace(GF(p),n)|[ Vector(Eltseq(e)) : e in basis ]> };
+		span_bi := { SequenceToElement(Eltseq(v), F) : v in sub< VectorSpace(GF(p),n)|[ Vector(Eltseq(L2[e])) : e in basis ]> };
 		return [ x : x in F | not x in span_bi ];
 	end if;
 end function;
@@ -280,7 +276,7 @@ function process_fix_l2(f,g,finv,ginv,L1,L2,P,fixX,fixY)
 	if b eq fixX then
 		D := [fixY];
 	else
-		D := domainl2(f,g,L1,L2,P,b);
+		D := codomainl2(L2,b);
 	end if;
 
 	for v in D do
@@ -393,8 +389,6 @@ function partitionByL2(f)
 							end if;
 						end for;
 
-						// print "pre";
-						// out_new_orbit;
 						Exclude(~remaining, out_new_orbit);
 					end if;
 				end for;
@@ -413,7 +407,6 @@ function partitionByL2(f)
 				continue;
 			end if;
 
-			// We found a new element in the orbit
 			Append(~L2s,l2);
 
 			orbit join:= target_orbit;
@@ -435,8 +428,6 @@ function partitionByL2(f)
 								end if;
 							end for;
 
-							// print "main";
-							// out_new_orbit;
 							Exclude(~remaining, out_new_orbit);
 						end if;
 					end for;
@@ -446,53 +437,6 @@ function partitionByL2(f)
 
 		Append(~orbits, orbit);
 		remaining := next_remaining;
-
-		// for target_orbit in remaining do
-		// 	if target_orbit in to_remove then
-		// 		continue;
-		// 	end if;
-
-		// 	target := Rep(target_orbit);
-
-		// 	doesEmapToTarget, l2 := dupeq_fixed_l2(fTT, finvTT, fTT, finvTT, e, target);
-			
-		// 	if doesEmapToTarget then
-		// 		Append(~L2s,l2);
-				
-		// 		newElements := target_orbit;
-		// 		Include(~to_remove, target_orbit);
-
-		// 		countBefore := 0;
-		// 		while #newElements gt countBefore do
-		// 			countBefore := #newElements;
-				
-		// 			for x in newElements do
-		// 				for l in L2s do
-		// 					lx := l[x];
-		// 					if not lx in newElements then
-		// 						out_new_orbit := {};
-		// 						for new_orbit in remaining do
-		// 							if lx in new_orbit then
-		// 								newElements join:= new_orbit;
-		// 								out_new_orbit := new_orbit;
-		// 								break;
-		// 							end if;
-		// 						end for;
-
-		// 						print "main";
-		// 						out_new_orbit;
-		// 						Include(~to_remove, out_new_orbit);
-		// 					end if;
-		// 				end for;
-		// 			end for;
-		// 		end while;
-
-		// 		orbit join:= newElements;
-		// 	end if;
-		// end for;
-
-		// Append(~orbits, orbit);
-		// remaining diff:= to_remove;
 	end while;
 
 	return orbits;

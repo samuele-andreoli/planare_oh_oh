@@ -255,14 +255,32 @@ getAllDOPlanar:=function(R)
   return &cat[fun(R): fun in [getG,getZP,getCG,getD,getBHB,getB,getZKW,getCMDY,getA,getFF]];
 end function;
 
-//it is our version
+// Correct version from Robert
+EvaluateMod := function(f,l, FE)
+    return &+[Evaluate(ft, l) mod FE : ft in Terms(f)];
+end function;
+
+EvaluateLinearMod := function(l,f, FE)
+    return &+[Evaluate(l_term,f_term) mod FE : f_term in Terms(f), l_term in Terms(l)];
+end function;
+
 getCHK:=function(R)
   x:=R.1;
   F:=BaseRing(R);
   p:=Characteristic(F);
   n:=Degree(F);
+
   if [p,n] ne [3,8] then
     return [];
   end if;
-  return [x^2-x^6+x^82+x^246];
+
+  FE := x^p^n + 2*x;
+
+  L := x^243 + 2*x^81 + x^9 + x^3 + 2*x;
+  D := x^246 + 2*x^10;
+  t := x^9 + 2*x;
+
+  f := EvaluateLinearMod(L, t^2, FE) + EvaluateMod(D, t, FE) + x^2/2;
+
+  return [f];
 end function;

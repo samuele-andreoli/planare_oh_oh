@@ -120,6 +120,7 @@ computeOrbitsTable := procedure()
     printf "getOrbitsTable := function(n)";
     printf "\tF<a> := GF(3^n);\n\tR<x> := PolynomialRing(F);\n";
     printf "\torbitsTable := AssociativeArray();\n\n";
+    printf "\torbitsInvariantTable := AssociativeArray();\n\n";
 
     for n := 3 to 8 do
         printf "\tif n eq %o then\n", n;
@@ -131,6 +132,7 @@ computeOrbitsTable := procedure()
         for f in FunctionList do
             orbits := partitionByL2(f);
             printf "\t\torbitsTable[%o] := %o;\n", f, {Min(o) : o in orbits};
+            printf "\t\torbitsInvariantTable[%o] := \"%o\";\n", f, {* #o : o in orbits *};
         end for;
 
         printf "\tend if;\n";

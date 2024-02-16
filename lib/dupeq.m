@@ -195,7 +195,7 @@ function domainl2(f,g,L1,L2,P,b)
 	B := Basis(FF);
 	i := 1;
 	while B[i] ne b do
-		Append(~basis_elements,B[i]);
+		Append(~basis_elements,L2[B[i]]);
 		i +:= 1;
 	end while;
 	if #basis_elements eq 0 then
