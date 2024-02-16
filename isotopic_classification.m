@@ -28,8 +28,8 @@ for n:=2 to 8 do
 				asterisk := function(u,v)
 					  return star(Evaluate(starPsi,u),Evaluate(starPsi,v));
 				end function;
-				N,Nm:=getNuclei(f,e);
-				for b in (Nm diff N) do
+				CandidatesB:={Rep({u*b: u in N|not IsZero(u)}): b in (Nm diff N)};
+				for b in CandidatesB do
 					f1:=Interpolation([u: u in F],[asterisk(asterisk(b,u),u): u in F]);
 					//the second dupeq is to double check
 					if not dupeq_with_l2_representatives(f,f1,OrbitsTable[f]) and not dupeq(f,f1) then
