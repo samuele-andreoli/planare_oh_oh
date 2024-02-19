@@ -149,9 +149,11 @@ function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
 						newL1y := g[newX];
 
 						/* Possible contradiction for L1 */
-						if IsDefined(L1,newL1x) and L1[newL1x] ne newL1y then
-							/* This has been confirmed to cut off unnecessary branches */
-							return false, [], [], [], [];
+						if IsDefined(L1,newL1x) then
+							if L1[newL1x] ne newL1y then
+								/* This has been confirmed to cut off unnecessary branches */
+								return false, [], [], [], [];
+							end if;
 						else
 							L1[newL1x] := newL1y;
 							Append(~newL1, newL1x);
