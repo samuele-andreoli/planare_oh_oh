@@ -19,7 +19,7 @@ getCMDY:=function(R)
   F:=BaseRing(R);
   n:=Degree(F);
   p:=Characteristic(F);
-  if p ne 3 or IsEven(n) then
+  if p ne 3 or IsEven(n) or (n le 5) then
     return [];
   end if;
   return [x^10+x^6-x^2,x^10-x^6-x^2];
