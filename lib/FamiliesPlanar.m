@@ -188,6 +188,8 @@ getD:=function(R)
   return [getFunFromSpecialSemifield(R,Op,ns*y^(p^i) ,Op2): i in cop];
 end function;
 
+
+//There are 2 up to isotopism
 getCG:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
@@ -198,6 +200,7 @@ getCG:=function(R)
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
   Op:=y^2;
+  ns:=Rep({a:a in GF(p^m)|not IsZero(a) and not IsSquare(a)});
   return [getFunFromSpecialSemifield(R,Op,a*y+ a^3 *y^9 ,a*y^3 ): a in GF(p^m)|not IsZero(a) and not IsSquare(a)];
 end function;
 
