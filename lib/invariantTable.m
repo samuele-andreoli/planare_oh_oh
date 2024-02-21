@@ -198,8 +198,8 @@ getOrbitsTable := function(n)
         orbitsTable[x^14]:={One(F)};
         orbitsTable[x^122]:={One(F)};
         orbitsTable[x^1094]:={One(F)};
-        orbitsTable[x^244 + 2*x^84 + 2*x^82]:={a^i: i in [0, 1, 2, 4, 5, 29]};
-        orbitsTable[x^246 + x^244 + 2*x^84]:={a^i: i in [0, 1, 2, 3, 6, 35]};
+        orbitsTable[x^244 + 2*x^84 + 2*x^82]:={a^i: i in [0, 1, 2, 4, 7, 8]};
+        orbitsTable[x^324 + x^246 + 2*x^4]:={a^i: i in [0, 1, 2, 4, 7, 8]};
         orbitsTable[x^738 + x^82 + 2 * x^18 + x^2]:={a^i: i in [0, 1, 2, 4, 5, 7]};
         orbitsTable[x^246 + x^82 + 2*x^6 + x^2] := { One(F), a, a^2, a^4, a^10, a^11, a^13, a^16, a^17, a^28, a^35, a^41 };
         // 8.9 orbits give false negatives
