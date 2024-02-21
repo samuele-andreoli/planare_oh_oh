@@ -131,5 +131,5 @@ getNuclei:=function(f, e)
         end if;
     end for;
 
-    return N,Nm;
+    return [N,Nm];
 end function;
