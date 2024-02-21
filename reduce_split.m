@@ -66,82 +66,83 @@ end procedure;
 
 SplitFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray())
 
-  if not IsEmpty(Fun) then
-    R:=Parent(Fun[1]);
-    F:=BaseRing(R);
-    if IsOdd(Degree(F)) then
-      return;
+  if IsEmpty(Fun) then
+    return;
+  end if;
+
+  R:=Parent(Fun[1]);
+  F:=BaseRing(R);
+  if IsOdd(Degree(F)) then
+    return;
+  end if;
+  for f in Fun do
+    if not IsDefined(NucleiFun,f) then
+      NucleiFun[f]:=getNuclei(f,One(F));
     end if;
-    for f in Fun do
-      if not IsDefined(NucleiFun,f) then
-        NucleiFun[f]:=getNuclei(f,One(F));
+  end for;
+
+  myIsEquivalent:=function(f,f1)
+    if IsDefined(OrbitsFun,f) then
+      return dupeq_with_l2_representatives(f,f1,OrbitsFun[f]);
+    elif IsDefined(OrbitsFun,f1) then
+      return dupeq_with_l2_representatives(f1,f,OrbitsFun[f1]);
+    else
+      return dupeq(f,f1);
+    end if;
+  end function;
+
+  getNewSplit:=function(f)
+    star:=function(u,v)
+        return Evaluate(f,u+v) - Evaluate(f,u) - Evaluate(f,v);
+    end function;
+    starPsi := Interpolation([star(u,One(F)): u in F],[u: u in F]);
+
+    asterisk := function(u,v)
+        return star(Evaluate(starPsi,u),Evaluate(starPsi,v));
+    end function;
+    N:=NucleiFun[f][1];
+    Nm:=NucleiFun[f][2];
+    CandidatesB:={Rep({asterisk(u,b): u in N|not IsZero(u)}): b in (Nm diff N)};
+    for b in CandidatesB do
+      f1:=Interpolation([u: u in F],[asterisk(asterisk(b,u),u): u in F]);
+      if not myIsEquivalent(f,f1) then
+        return f1;
       end if;
     end for;
-
-    myIsEquivalent:=function(f,f1)
-      if IsDefined(OrbitsFun,f) then
-        return dupeq_with_l2_representatives(f,f1,OrbitsFun[f]);
-      elif IsDefined(OrbitsFun,f1) then
-        return dupeq_with_l2_representatives(f1,f,OrbitsFun[f1]);
-      else
-        return dupeq(f,f1);
-      end if;
-    end function;
-
-    getNewSplit:=function(f)
-      star:=function(u,v)
-          return Evaluate(f,u+v) - Evaluate(f,u) - Evaluate(f,v);
-      end function;
-      starPsi := Interpolation([star(u,One(F)): u in F],[u: u in F]);
-
-      asterisk := function(u,v)
-          return star(Evaluate(starPsi,u),Evaluate(starPsi,v));
-      end function;
-      N:=NucleiFun[f][1];
-      Nm:=NucleiFun[f][2];
-      CandidatesB:={Rep({u*b: u in N|not IsZero(u)}): b in (Nm diff N)};
-      for b in CandidatesB do
-        f1:=Interpolation([u: u in F],[asterisk(asterisk(b,u),u): u in F]);
-        if not myIsEquivalent(f,f1) then
-          if not isPlanar(f1) then error""; end if;
-          return f1;
+    return f;
+  end function;
+  p:=Characteristic(F);
+  NewFun:=[];
+  for f in Fun do
+    if IsEven(Floor(Log(p,#NucleiFun[f][2])/Log(p,#NucleiFun[f][1]))) then
+      f0:=getNewSplit(f);
+      Append(~NewFun,f0);
+    else
+      Append(~NewFun,f);
+    end if;
+  end for;
+  card:=#Fun;
+  for i:=card to 1 by -1 do
+    if not Fun[i] eq NewFun[i] then
+      bolNew:=true;
+      for j in Exclude([1..card],i) do
+        if ([#NN:NN in NucleiFun[Fun[i]]] eq [#NN:NN in NucleiFun[Fun[j]]]) and myIsEquivalent(Fun[j],NewFun[i]) then
+          Remove(~Fun,i);
+          bolNew:=false;
+          break;
         end if;
       end for;
-      return f;
-    end function;
-    p:=Characteristic(F);
-    NewFun:=[];
-    for f in Fun do
-      if IsEven(Floor(Log(p,#NucleiFun[f][2])/Log(p,#NucleiFun[f][1]))) then
-        f0:=getNewSplit(f);
-        Append(~NewFun,f0);
-      else
-        Append(~NewFun,f);
+      if bolNew then
+        Append(~Fun,NewFun[i]);
       end if;
-    end for;
-    card:=#Fun;
-    for i:=card to 1 by -1 do
-      if not Fun[i] eq NewFun[i] then
-        bolNew:=true;
-        for j in Exclude([1..card],i) do
-          if ([#NN:NN in NucleiFun[Fun[i]]] eq [#NN:NN in NucleiFun[Fun[j]]]) and myIsEquivalent(Fun[j],NewFun[i]) then
-            Remove(~Fun,i);
-            bolNew:=false;
-            break;
-          end if;
-        end for;
-        if bolNew then
-          Append(~Fun,NewFun[i]);
-        end if;
-      end if;
-    end for;
-  end if;
+    end if;
+  end for;
 end procedure;
 
 
 
 load "lib/FamiliesPlanar.m";
-n:=8;
+n:=6;
 F<a>:=GF(3^n);
 R<x>:=PolynomialRing(F);
 Funs:=[fun(R): fun in [getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
