@@ -92,8 +92,8 @@ getInvariantTable:=function(n)
         };
         
         invariantTable["[ 3, 9 ].NA"]:={
-            a^714*x^244 + a^2074*x^84 + x^82,
-            a^418*x^2188 + a^4338*x^108 + x^82
+            x^244 + 2*x^84 + 2*x^82,
+            x^324 + x^246 + 2*x^4
         };
         
         invariantTable["[ 3, 81 ].NA"]:={
@@ -198,9 +198,9 @@ getOrbitsTable := function(n)
         orbitsTable[x^14]:={One(F)};
         orbitsTable[x^122]:={One(F)};
         orbitsTable[x^1094]:={One(F)};
-        orbitsTable[a^714 * x^244 + a^2074 * x^84 + x^82]:={a^i: i in [0, 1, 2, 4, 5, 29]};
+        orbitsTable[x^244 + 2*x^84 + 2*x^82]:={a^i: i in [0, 1, 2, 4, 5, 29]};
+        orbitsTable[x^246 + x^244 + 2*x^84]:={a^i: i in [0, 1, 2, 3, 6, 35]};
         orbitsTable[x^738 + x^82 + 2 * x^18 + x^2]:={a^i: i in [0, 1, 2, 4, 5, 7]};
-        orbitsTable[a^418 * x^2188 + a^4338 * x^108 + x^82]:={a^i: i in [0, 1, 2, 3, 6, 35]};
         orbitsTable[x^246 + x^82 + 2*x^6 + x^2] := { One(F), a, a^2, a^4, a^10, a^11, a^13, a^16, a^17, a^28, a^35, a^41 };
         // 8.9 orbits give false negatives
         // orbitsTable[a^3608 * x^1458 + a^3608 * x^738 + a^3810 * x^486 + a^3810 * x^246 + a^3413 * x^162 +a^3413 * x^82 + a^3608 * x^18 + a^3810 * x^6 + a^2565 * x^2]:={a^i: i in [0, 1, 2, 4, 7, 10, 13, 14, 17, 20, 41, 43]};

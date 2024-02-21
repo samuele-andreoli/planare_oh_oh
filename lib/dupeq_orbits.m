@@ -16,50 +16,22 @@
 
 forward derivel2;
 
-/* Finds the linear span of the given set of elements */
-function span(Els)
-	F := Parent(Els[1]);
-	p := Characteristic(F);
-	n := Degree(F);
-	return { SequenceToElement( Eltseq(v), F) : v in sub<VectorSpace(GF(p),n)|[ Vector(Eltseq(e)) : e in Els ]> };
-end function;
+function firstFree(L2)
+	F := Universe(L2);
 
-function firstFreel2(TT)
-	F := Universe(TT);
-	B := Basis(F);
+	if #F eq #L2 then
+		return Zero(F);
+	end if;
 
-	for i in [1..#B] do
-		if not IsDefined(TT,B[i]) then
-			return B[i];
+	for x in F do
+		if not IsDefined(L2, x) then
+			return x;
 		end if;
 	end for;
-
-	return Zero(F);
 end function;
 
-function codomainl2(L2, b)
-	/* The possible values of l2 at b are those that lie outside of the linear subspace
-	 * spanned by the outputs of the assigned values
-	 */
-
-	/* Since b should be the first element in the basis of the finite field that
-	 * has not been assigned a value, we simply take the images of all preceding
-	 * basis elements and generate the spanned subspace.
-	 */
-
-	F := Parent(b);
-	p := Characteristic(F);
-	n := Degree(F);
-
-	B := Basis(F);
-	basis := B[1..Index(B,b)-1];
-
-	if #basis eq 0 then
-		return [ x : x in F | x ne 0 ];
-	else
-		span_bi := { SequenceToElement(Eltseq(v), F) : v in sub< VectorSpace(GF(p),n)|[ Vector(Eltseq(L2[e])) : e in basis ]> };
-		return [ x : x in F | not x in span_bi ];
-	end if;
+function codomain(L2)
+	return {x : x in Universe(L2)} diff {l2x : x->l2x in L2};
 end function;
 
 /* Given a list of newly set values for L1, derives all values of L1 that can be
@@ -69,26 +41,23 @@ end function;
  * - the new TT for L1;
  * - the new TT for L2;
  *   The new values are given as a sequence of inputs, e.g. newValues = [ a, b, c ]
- *   means that we now know L2[a], L2[b], and L2[c], which we did not know before.
+ *   means that we now know L1[a], L1[b], and L1[c], which we did not know before.
  */
 function derivel1(f,g,finv,ginv,L1,L2,P,newValues)
-	newP := [];
-
-	p := Characteristic(Universe(f));
-	primeField := [ x : x in GF(p) | x ne 0 ];
+	primeField := {x : x in PrimeField(Universe(f)) | x ne 0};
 
 	/* To derive new values, we combine all known values of L1 with the new ones
 	 * using linear combinations.
 	 */
-	for x in Keys(L1) do	
-		for c1 in primeField do
-			newX1 := c1*x;
-			newY1 := c1*L1[x];
+	for v in newValues do
+		for c2 in primeField do
+			newX2 := c2*v;
+			newY2 := c2*L1[v];
 
-			for v in newValues do
-				for c2 in primeField do
-					newX := newX1 + c2*v;
-					newY := newY1 + c2*L1[v];
+			for x->l1x in L1 do
+				for c1 in primeField do
+					newX := newX2 + c1 * x;
+					newY := newY2 + c1 * l1x;
 
 					if IsDefined(L1,newX) then
 						if L1[newX] ne newY then
@@ -96,12 +65,13 @@ function derivel1(f,g,finv,ginv,L1,L2,P,newValues)
 						end if;
 					else
 						L1[newX] := newY;
+
 						/* Since we have l1(f(l2(x))) = g(x), and we know L1[newX], we can obtain
 						 * a contradiction in several ways:
 						 * - if newX is in the image of f, but newY is not in the image of g;
 						 * - if newX is not in the image of f, but newY is in the image of g
 						 * - if L2[newX] or L2[-newX] is already defined, but the value is
-						 *   not one of newY or -neweY
+						 *   not one of newY or -newY
 						 */
 						if IsDefined(finv, newX) then
 							if not IsDefined(ginv,newY) then
@@ -129,7 +99,7 @@ function derivel1(f,g,finv,ginv,L1,L2,P,newValues)
 								 * but we do not know how, so we add it to the list of
 								 * pairs that need to be resolved
 								 */
-								Append(~newP, <L2x, L2y>);
+								Include(~P, <L2x, L2y>);
 							end if;
 						else
 							if IsDefined(ginv,newY) then
@@ -143,7 +113,7 @@ function derivel1(f,g,finv,ginv,L1,L2,P,newValues)
 		end for;
 	end for;
 
-	return true, L1, L2, P cat newP;
+	return true, L1, L2, P;
 end function;
 
 
@@ -157,24 +127,23 @@ end function;
  *   means that we now know L2[a], L2[b], and L2[c], which we did not know before.
  */
 function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
-	newL1 := [];
+	newL1 := {};
 
-	p := Characteristic(Universe(f));
-	primeField := [ x : x in GF(p) | x ne 0 ];
+	primeField := {x : x in PrimeField(Universe(f)) | x ne 0};
 
 	/* To derive new values, we combine all known values of L2 with the new ones
 	 * using linear combinations.
 	 */
 
-	for x in Keys(L2) do
-		for c1 in primeField do
-			newX1 := c1*x;
-			newY1 := c1*L2[x];
+	for v in newValues do
+		for c2 in primeField do
+			newX2 := c2 * v;
+			newY2 := c2 * L2[v];
 
-			for v in newValues do
-				for c2 in primeField do
-					newX := newX1 + c2*v;
-					newY := newY1 + c2*L2[v];
+			for x->l2x in L2 do
+				for c1 in primeField do
+					newX := newX2 + c1 * x;
+					newY := newY2 + c1 * l2x;
 
 					/* Possible contradiction */
 					if IsDefined(L2, newX) then
@@ -184,21 +153,24 @@ function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
 						end if;
 					else
 						L2[newX] := newY;
-						/* Since we know L2(newX) = newY, and L1(f(L2(x))) = g(x),
-						 * we have that L1[ f(L2(newX)) ] = g( newX ), i.e. we can
-						 * derive a new value of L1 (if it has not been defined yet
-						 */
 
-						newL1x := f[L2[newX]];
+						/* Since we know L2(newX) = newY, and L1(f(L2(x))) = g(x),
+						* we have that L1[ f(L2(newX)) ] = g( newX ), i.e. we can
+						* derive a new value of L1 (if it has not been defined yet
+						*/
+
+						newL1x := f[newY];
 						newL1y := g[newX];
 
 						/* Possible contradiction for L1 */
-						if IsDefined(L1,newL1x) and L1[newL1x] ne newL1y then
-							/* This has been confirmed to cut off unnecessary branches */
-							return false, [], [], [], [];
+						if IsDefined(L1,newL1x) then
+							if L1[newL1x] ne newL1y then
+								/* This has been confirmed to cut off unnecessary branches */
+								return false, [], [], [], [];
+							end if;
 						else
 							L1[newL1x] := newL1y;
-							Append(~newL1, newL1x);
+							Include(~newL1, newL1x);
 						end if;
 					end if;
 				end for;
@@ -212,9 +184,11 @@ function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
 	return derivel1(f,g,finv,ginv,L1,L2,P,newL1);
 end function;
 
-function process_fix_l2(f,g,finv,ginv,L1,L2,P,fixX,fixY)
-	if #Keys(L1) eq #Universe(f) and #Keys(L2) eq #Keys(L1) then
-		return true, L2;
+function process_fix_l2(f, g, finv, ginv, L1, L2, P, fixX, fixY)
+	F := Universe(f);
+	
+	if #L1 eq #F and #L2 eq #L1 then
+		return true, L1, L2;
 	end if;
 
 	/* If we are here, we assume that all linear combinations for L1 and L2
@@ -224,8 +198,11 @@ function process_fix_l2(f,g,finv,ginv,L1,L2,P,fixX,fixY)
 	*/
 
 	if #P ne 0 then
-		x := P[1][1];
-		y := P[1][2];
+		pair := Rep(P);
+		Exclude(~P, pair);
+
+		x := pair[1];
+		y := pair[2];
 		/* We know that { -x, +x } will map to { -y, +y }, but we guess
 		   which of two possibilities will take place
 		*/
@@ -233,12 +210,12 @@ function process_fix_l2(f,g,finv,ginv,L1,L2,P,fixX,fixY)
 		L2[-x] := -y;
 		L2[x] := y;
 
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P[2..#P], [ x ]);
+		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P, [x]);
 
 		if hope then
-			success, l2 := process_fix_l2(f,g,finv,ginv,newL1,newL2,newP,fixX,fixY);
+			success, l1, l2 := process_fix_l2(f, g, finv, ginv, newL1, newL2, newP, fixX, fixY);
 			if success then
-				return true, l2;
+				return true, l1, l2;
 			end if;
 		end if;
 
@@ -247,51 +224,55 @@ function process_fix_l2(f,g,finv,ginv,L1,L2,P,fixX,fixY)
 		L2[-x] := y;
 		L2[x] := -y;
 
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P[2..#P], [ -x, x ]);
+		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P, [x]);
 		if hope then
-			success, l2 := process_fix_l2(f,g,finv,ginv,newL1,newL2,newP,fixX,fixY);
+			success, l1, l2 := process_fix_l2(f, g, finv, ginv, newL1, newL2, newP, fixX, fixY);
 			if success then
-				return true, l2;
+				return true, l1, l2;
 			end if;
 		end if;
 
 		/* If both options lead to contradictions, we are already in the soup */
 
-		return false, [];
+		return false, [], [];
 	end if;
 
 	/* If there are no pairs to process, we guess a value of L2 instead */
 
 	/* Get the first free element of L2 (whose value we will guess) */
-	b := firstFreel2(L2);
+	b := firstFree(L2);
 
 	/* If all basis elements have been evaluated, firstFreel2() will return 0;
 	 * in this case, we have completely reconstructed L2, and return.
 	 */
 	if b eq 0 then
-		return true, L2;
+		/* Quick and easy sanity check */
+		assert #L2 eq #L1;
+		assert #L2 eq #F;
+
+		return true, L1, L2;
 	end if;
 
 	/* Get a list of the possible values that can be assigned to L2 */
 	if b eq fixX then
 		D := [fixY];
 	else
-		D := codomainl2(L2,b);
+		D := codomain(L2);
 	end if;
 
 	for v in D do
 		L2[b] := v;
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P,[b]);
 
+		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P,[b]);
 		if hope then
-			success, l2 := process_fix_l2(f,g,finv,ginv,newL1,newL2,newP,fixX,fixY);
+			success, l1, l2 := process_fix_l2(f,g,finv,ginv,newL1,newL2,newP,fixX,fixY);
 			if success then
-				return true, l2;
+				return true, l1, l2;
 			end if;
 		end if;
 	end for;
 
-	return false, [];
+	return false, [], [];
 end function;
 
 /* Fixes L2(fixX) to fixY, and tries to find a pair (L1, L2)
@@ -307,7 +288,57 @@ function dupeq_fixed_l2(fTT,finvTT,gTT,ginvTT,fixX,fixY)
 	L2[fixX] := fixY;
 	L2[-fixX] := -fixY;
 
-	return process_fix_l2(fTT,gTT,finvTT,ginvTT,L1,L2,[],fixX,fixY);
+	success, L1, L2 := process_fix_l2(fTT,gTT,finvTT,ginvTT,L1,L2,[],fixX,fixY);
+	if success then
+		for x in F do
+			assert L1[fTT[L2[x]]] eq gTT[x];
+		end for;
+
+		l1 := Interpolation([ x : x in F ], [ L1[x] : x in F ]);
+		l2 := Interpolation([ x : x in F ], [ L2[x] : x in F ]);
+
+		/* Compute p-weight of n */
+		weight := function(p,n)
+			w := 0;
+			while n gt 0 do
+				r := n mod p;
+				n := n div p;
+
+				w+:=r;
+			end while;
+
+			return w;
+		end function;
+
+		isLinearPolynomial := function(f)
+			e := -1;
+			for c in Coefficients(f) do
+				e := e+1;
+				if IsZero(c) then
+					continue;
+				end if;
+
+				if weight(3,e) gt 1 then
+					return false;
+				end if;
+			end for;
+
+			return true;
+		end function;
+
+		assert isLinearPolynomial(l1);
+		assert isLinearPolynomial(l2);
+
+		// l1;
+		// l2;
+
+		assert L2[fixX] eq fixY;
+
+		// fixX;
+		// fixY;
+	end if;
+
+	return success, L1, L2;
 end function;
 
 function trivialPartition(f)
@@ -332,7 +363,7 @@ function trivialPartition(f)
 
 	while #elements gt 0 do
 		x := Rep(elements);
-		orbit := { c*x^(3^(d*i)) : c in {1,2}, i in [0..m-1] };
+		orbit := {c*x^(3^(d*i)) : c in {1,2}, i in [0..m-1]};
 
 		elements diff:= orbit;
 		Include(~orbits, orbit);
@@ -400,7 +431,7 @@ function partitionByL2(f)
 			target_orbit := Rep(remaining);
 			Exclude(~remaining, target_orbit);
 			
-			success, l2 := dupeq_fixed_l2(fTT, finvTT, fTT, finvTT, e, Rep(target_orbit));
+			success, l1, l2 := dupeq_fixed_l2(fTT, finvTT, fTT, finvTT, e, Rep(target_orbit));
 
 			if not success then
 				Include(~next_remaining, target_orbit);
@@ -441,4 +472,3 @@ function partitionByL2(f)
 
 	return orbits;
 end function;
-

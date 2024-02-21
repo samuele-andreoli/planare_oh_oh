@@ -141,17 +141,19 @@ for k->v in to_test_for_equivalence do
     // We have made sure they are in invariant table
     representatives := invariantTable[k];
 
-    inequiv := v;
+    vs := {vi : vi in v};
+    inequiv := vs;
     for r in representatives do
         if r in Keys(orbitsTable) then
             orbits := orbitsTable[r];
-            inequiv := [f : f in inequiv | not dupeq_with_l2_representatives(r,f,orbits)];
+            inequiv := {f : f in inequiv | not dupeq_with_l2_representatives(r,f,orbits)};
         else
             // If we do not have he orbit there is a reson :)
-            inequiv := [f : f in inequiv | not dupeq(r,f)];
+            inequiv := {f : f in inequiv | not dupeq(r,f)};
         end if;
 
-        equivalence_classes[r] := v diff inequiv;
+        vs diff:= inequiv;
+        equivalence_classes[r] := vs;
     end for;
 
     if #inequiv gt 0 then
