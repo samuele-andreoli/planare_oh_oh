@@ -28,8 +28,10 @@ for n:=2 to 8 do
 				asterisk := function(u,v)
 					  return star(Evaluate(starPsi,u),Evaluate(starPsi,v));
 				end function;
-    				N,Nm:=getNuclei(f,e);
-				CandidatesB:={Rep({u*b: u in N|not IsZero(u)}): b in (Nm diff N)};
+    				NN:=getNuclei(f,e);
+						N:=NN[1];
+						Nm:=NN[2];
+				CandidatesB:={Rep({asterisk(u,b): u in N|not IsZero(u)}): b in (Nm diff N)};
 				for b in CandidatesB do
 					f1:=Interpolation([u: u in F],[asterisk(asterisk(b,u),u): u in F]);
 					//the second dupeq is to double check
