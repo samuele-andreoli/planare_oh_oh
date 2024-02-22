@@ -36,15 +36,15 @@ RemovePower:=procedure(~Fun)
   end if;
 end procedure;
 //also removes all function eq to monomials
-ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray(),AutomorphismFun:=AssociativeArray())
+ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray(),AutomorphismsFun:=AssociativeArray())
   testEquivalence:=function(f,g)
     iObol:=IsDefined(OrbitsFun,f);
     jObol:=IsDefined(OrbitsFun,g);
     Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
-    Abol:=IsDefined(AutomorphismFun,f) and IsDefined(AutomorphismFun,g);
+    Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
     if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
       return false;
-    elif Abol and AutomorphismFun[f] ne AutomorphismFun[g] then
+    elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
       return false;
     elif iObol then
       return dupeq_with_l2_representatives(f,g,OrbitsFun[f]);
@@ -74,7 +74,7 @@ ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeAr
   end if;
 end procedure;
 
-SplitFun:=procedure(~Fun,~NucleiFun,OrbitsFun:=AssociativeArray())
+SplitFun:=procedure(~Fun,~NucleiFun:OrbitsFun:=AssociativeArray(),AutomorphismsFun:=AssociativeArray())
 
   if IsEmpty(Fun) then
     return;
@@ -95,10 +95,10 @@ SplitFun:=procedure(~Fun,~NucleiFun,OrbitsFun:=AssociativeArray())
     iObol:=IsDefined(OrbitsFun,f);
     jObol:=IsDefined(OrbitsFun,g);
     Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
-    Abol:=IsDefined(AutomorphismFun,f) and IsDefined(AutomorphismFun,g);
+    Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
     if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
       return false;
-    elif Abol and AutomorphismFun[f] ne AutomorphismFun[g] then
+    elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
       return false;
     elif iObol then
       return dupeq_with_l2_representatives(f,g,OrbitsFun[f]);
@@ -177,9 +177,8 @@ ClassifyFun:=procedure(n)
   Funs:=[[ReducePolyForm(f): f in Fun]: Fun in Funs];
   NucleiFun:=AssociativeArray();
   OrbitsFun:=AssociativeArray();
-  AuthomorphismsFun:=AssociativeArray();
+  AutomorphismsFun:=AssociativeArray();
   StrFam:=["G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
-  FamList:=AssociativeArray();
   for i:=1 to #Funs do
     printf "\n\n\n\n---------\nFamily %o\n\n",StrFam[i];
     printf "removing monomials...";
@@ -193,15 +192,14 @@ ClassifyFun:=procedure(n)
     end for;
     printf "done\n";
     printf "reducing functions...";
-    ReduceFun(~Funs[i]:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AuthomorphismsFun:=AuthomorphismsFun);
+    ReduceFun(~Funs[i]:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
     printf "done\n";
     printf "splitting functions...";
-    SplitFun(~Funs[i],~NucleiFun:OrbitsFun:=OrbitsFun,AuthomorphismsFun:=AuthomorphismsFun);
+    SplitFun(~Funs[i],~NucleiFun:OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
     printf "done\n";
     printf "\nNumber of classes %o\n",#Funs[i];
-    printf "assigning families and computing new nuclei...";
+    printf "computing new nuclei...";
     for f in Funs[i] do
-      FamList[f]:=StrFam[i];
       if not IsDefined(NucleiFun,f) then
         NucleiFun[f]:=getNuclei(f,One(F));
       end if;
@@ -213,10 +211,10 @@ ClassifyFun:=procedure(n)
     iObol:=IsDefined(OrbitsFun,f);
     jObol:=IsDefined(OrbitsFun,g);
     Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
-    Abol:=IsDefined(AuthomorphismsFun,f) and IsDefined(AutomorphismFun,g);
+    Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
     if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
       return false;
-    elif Abol and AutomorphismFun[f] ne AutomorphismFun[g] then
+    elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
       return false;
     elif iObol then
       return dupeq_with_l2_representatives(f,g,OrbitsFun[f]);
@@ -236,13 +234,19 @@ ClassifyFun:=procedure(n)
   myRep:=PowerSequence(R)!getRepresentatives(n);
   for i:=1 to #myRep do
     printf "\n%o.%o\t",n,i;
+    f:=myRep[i];
+    if not IsDefined(NucleiFun,f) then
+    	NucleiFun[f]:=getNuclei(f,One(F));
+    end if;
     for j:=1 to #Funs do
       for g in Funs[j] do
-        if testEquivalence(myRep[i],g) then
-          printf "%o\t",StrFam[i];
+        if testEquivalence(f,g) then
+          printf "%o\t",StrFam[j];
           break;
         end if;
       end for;
     end for;
   end for;
 end procedure;
+
+ClassifyFun(6);
