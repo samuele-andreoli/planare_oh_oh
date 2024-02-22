@@ -163,21 +163,57 @@ SplitFun:=procedure(~Fun,~NucleiFun,OrbitsFun:=AssociativeArray())
     end if;
   end for;
 end procedure;
+ReducePolyForm:=function(f)
+  R:=Parent(f);
+  F:=BaseRing(R);
+  return R!Interpolation([u: u in F],[Evaluate(f,u): u in F]);
+end function;
 
-//I assume that Funs have already been in the previous steps
-listIntersectionsFam:=function(Funs, StrFam :NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray(),AutomorphismFun:=AssociativeArray())
-  allFun:=[];
+
+ClassifyFun:=procedure(n)
+  F<a>:=GF(3^n);
+  R<x>:=PolynomialRing(F);
+  Funs:=[fun(R): fun in [getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
+  Funs:=[[ReducePolyForm(f): f in Fun]: Fun in Funs];
+  NucleiFun:=AssociativeArray();
+  OrbitsFun:=AssociativeArray();
+  AuthomorphismsFun:=AssociativeArray();
+  StrFam:=["G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
   FamList:=AssociativeArray();
   for i:=1 to #Funs do
+    printf "\n\n\n\n---------\nFamily %o\n\n",StrFam[i];
+    printf "removing monomials...";
+    RemovePower(~Funs[i]);
+    printf "done\n";
+    printf "computing invariants...";
     for f in Funs[i] do
-      FamList[f]:=[StrFam[i]];
+      if not IsDefined(NucleiFun,f) then
+        NucleiFun[f]:=getNuclei(f,One(F));
+      end if;
     end for;
+    printf "done\n";
+    printf "reducing functions...";
+    ReduceFun(~Funs[i]:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AuthomorphismsFun:=AuthomorphismsFun);
+    printf "done\n";
+    printf "splitting functions...";
+    SplitFun(~Funs[i],~NucleiFun:OrbitsFun:=OrbitsFun,AuthomorphismsFun:=AuthomorphismsFun);
+    printf "done\n";
+    printf "\nNumber of classes %o\n",#Funs[i];
+    printf "assigning families and computing new nuclei...";
+    for f in Funs[i] do
+      FamList[f]:=StrFam[i];
+      if not IsDefined(NucleiFun,f) then
+        NucleiFun[f]:=getNuclei(f,One(F));
+      end if;
+    end for;
+    printf "done\n";
   end for;
+  printf "\n\n\n\n---------\nCheck intersections between families\n\n";
   testEquivalence:=function(f,g)
     iObol:=IsDefined(OrbitsFun,f);
     jObol:=IsDefined(OrbitsFun,g);
     Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
-    Abol:=IsDefined(AutomorphismFun,f) and IsDefined(AutomorphismFun,g);
+    Abol:=IsDefined(AuthomorphismsFun,f) and IsDefined(AutomorphismFun,g);
     if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
       return false;
     elif Abol and AutomorphismFun[f] ne AutomorphismFun[g] then
@@ -197,74 +233,16 @@ listIntersectionsFam:=function(Funs, StrFam :NucleiFun:=AssociativeArray(),Orbit
     end if;
     error "";
   end function;
-  for i:=1 to #Funs do
-    for f in Funs[i] do
-      for j:=(i+1) to #Funs do
-        for g in Funs[j] do
-          if testEquivalence(f,g) then
-            Exclude(~Funs[j]
-            NewFams:=FamList[f] cat FamList[g];
-            for fam in NewFams do
-              Include(~FamList[f],fam);
-              Include(~FamList[g],fam);
-            end for;
-          end if;
-        end for;
+  myRep:=PowerSequence(R)!getRepresentatives(n);
+  for i:=1 to #myRep do
+    printf "\n%o.%o\t",n,i;
+    for j:=1 to #Funs do
+      for g in Funs[j] do
+        if testEquivalence(myRep[i],g) then
+          printf "%o\t",StrFam[i];
+          break;
+        end if;
       end for;
     end for;
   end for;
-  return FamList;
-end function;
-
-
-ReducePolyForm:=function(f)
-  R:=Parent(f);
-  F:=BaseRing(R);
-  return R!Interpolation([u: u in F],[Evaluate(f,u): u in F]);
-end function;
-
-
-ClassifyFun:=procedure(n)
-  F<a>:=GF(3^n);
-  R<x>:=PolynomialRing(F);
-  Funs:=[fun(R): fun in [getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
-  Funs:=[[ReducePolyForm(f): f in Fun]: Fun in Funs];
-  myNuclei:=AssociativeArray();
-  myOrbits:=AssociativeArray();
-  myAuthomorphisms:=AssociativeArray();
-  StrFam:=["G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
-  for i:=1 to #Funs do
-    printf "\n\n\n\n---------\nFamily %o\n\n",StrFam[i];
-    printf "removing monomials...";
-    RemovePower(~Funs[i]);
-    printf "done\n";
-    printf "computing invariants...";
-    for f in Funs[i] do
-      if not IsDefined(myNuclei,f) then
-        myNuclei[f]:=getNuclei(f,One(F));
-      end if;
-    end for;
-    printf "done\n";
-    printf "reducing functions...";
-    ReduceFun(~Funs[i]:NucleiFun:=myNuclei,OrbitsFun:=myOrbits,AuthomorphismsFun:=myAuthomorphisms);
-    printf "done\n";
-    printf "splitting functions...";
-    SplitFun(~Funs[i],~myNuclei:OrbitsFun:=myOrbit,AuthomorphismsFun:=myAuthomorphisms);
-    printf "done\n";
-    printf "\nNumber of classes %o",#Funs[i];
-  end for;
-  printf "completing invariants..";
-  for f in &cat(Funs) do
-    if not IsDefined(myNuclei,f) then
-      myNuclei[f]:=getNuclei(f,One(F));
-    end if;
-  end for;
-  printf "done\n";
-  printf "\n\n\n\n---------\nCheck intersections between families\n\n";
-  FamList:=listIntersectionsFam(Funs, StrFam :NucleiFun:=myNuclei,OrbitsFun:=myOrbits,AuthomorphismsFun:=myAuthomorphisms);
-  
-  myRep:=PowerSequence(R)!getRepresentatives(n);
-  for f in myRep do
-    for g in Keys(FamList)
-  
 end procedure;
