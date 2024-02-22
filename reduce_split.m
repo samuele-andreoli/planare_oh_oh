@@ -2,9 +2,12 @@ load "lib/dupeq.m";
 load "lib/semifields.m";
 load "lib/planar.m";
 
+isMonomial:=function(f)
+  return #SequenceToSet(Coefficients(f)) eq 2;
+end function;
 
 
-
+//Functions that are not power but are equivalent to monomials
 RemovePower:=procedure(~Fun)
   if not IsEmpty(Fun) then
     R:=Parent(Fun[1]);
@@ -12,7 +15,6 @@ RemovePower:=procedure(~Fun)
       x:=R.1;
       return [x^2];
     end function;
-
     getA:=function()
       x:=R.1;
       F:=BaseRing(R);
@@ -23,7 +25,7 @@ RemovePower:=procedure(~Fun)
     Mon:=getFF() cat getA();
     for i:=#Fun to 1 by -1 do
       for m in Mon do
-        if dupeq(m,Fun[i]:monomial:=true) then
+        if not isMonomial(Fun[i]) and dupeq(m,Fun[i]:monomial:=true) then
           Remove(~Fun,i);
           break;
         end if;
@@ -47,7 +49,13 @@ ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeAr
     elif jObol then
       return dupeq_with_l2_representatives(g,f,OrbitsFun[g]);
     else
-      return dupeq(f,g);
+      if isMonomial(f) then
+        return dupeq(f,g:monomial:=true);
+      elif isMonomial(g) then 
+        return dupeq(g,f:monomial:=true);
+      else
+        return dupeq(g,f);
+      end if;
     end if;
     error "";
   end function;
@@ -81,13 +89,19 @@ SplitFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArr
     end if;
   end for;
 
-  myIsEquivalent:=function(f,f1)
+  myIsEquivalent:=function(f,g)
     if IsDefined(OrbitsFun,f) then
-      return dupeq_with_l2_representatives(f,f1,OrbitsFun[f]);
-    elif IsDefined(OrbitsFun,f1) then
-      return dupeq_with_l2_representatives(f1,f,OrbitsFun[f1]);
+      return dupeq_with_l2_representatives(f,g,OrbitsFun[f]);
+    elif IsDefined(OrbitsFun,g) then
+      return dupeq_with_l2_representatives(g,f,OrbitsFun[g]);
     else
-      return dupeq(f,f1);
+      if isMonomial(f) then
+        return dupeq(f,g:monomial:=true);
+      elif isMonomial(g) then 
+        return dupeq(g,f:monomial:=true);
+      else
+        return dupeq(g,f);
+      end if;
     end if;
   end function;
 
@@ -139,17 +153,72 @@ SplitFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArr
   end for;
 end procedure;
 
+//I assume that Funs have already been in the previous steps
+listIntersectionsFam:=procedure(Funs, StrFam :NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray(),AutomorphismFun:=AssociativeArray())
+  FamList:=AssociativeArray();
+  for i:=1 to #Funs do
+    for f in Funs[i] do
+      FamList[f]:=[StrFam[i]];
+    end for;
+  end for;
+  testEquivalence:=function(f,g)
+    iObol:=IsDefined(OrbitsFun,f);
+    jObol:=IsDefined(OrbitsFun,g);
+    Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
+    Abol:=IsDefined(AutomorphismFun,f) and IsDefined(AutomorphismFun,g);
+    if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
+      return false;
+    elif Abol and AutomorphismFun[f] ne AutomorphismFun[g] then
+      return false;
+    elif iObol then
+      return dupeq_with_l2_representatives(f,g,OrbitsFun[f]);
+    elif jObol then
+      return dupeq_with_l2_representatives(g,f,OrbitsFun[g]);
+    else
+      if isMonomial(f) then
+        return dupeq(f,g:monomial:=true);
+      elif isMonomial(g) then 
+        return dupeq(g,f:monomial:=true);
+      else
+        return dupeq(g,f);
+      end if;
+    end if;
+    error "";
+  end function;
+  for i:=1 to #Funs do
+    for f in Funs[i] do
+      for j:=(i+1) to #Funs do
+        for g in Funs[j] do
+          if testEquivalence(f,g) then
+            NewFams:=FamList[f] cat FamList[g];
+            for fam in NewFams do
+              Include(~FamList[f],fam);
+              Include(~FamList[g],fam);
+            end for;
+          end if;
+        end for;
+      end for;
+    end for;
+  end for;
+end procedure;
 
+
+ReducePolyForm:=function(f)
+  R:=Parent(f);
+  F:=BaseRing(R);
+  return R!Interpolation([u: u in F],[Evaluate(f,u): u in F]);
+end function;
 
 load "lib/FamiliesPlanar.m";
 n:=6;
 F<a>:=GF(3^n);
 R<x>:=PolynomialRing(F);
 Funs:=[fun(R): fun in [getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
+Funs:=[[ReducePolyForm(f): f in Fun]: Fun in Funs];
 myNuclei:=AssociativeArray();
 myOrbits:=AssociativeArray();
 StrFam:=["G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
-for i:=5 to #Funs do
+for i:=1 to #Funs do
   printf "\n\n\n\n---------\nFamily %o\n\n",StrFam[i];
   printf "removing monomials...";
   RemovePower(~Funs[i]);
@@ -170,3 +239,12 @@ for i:=5 to #Funs do
   printf "done\n";
   printf "\nNumber of classes %o",#Funs[i];
 end for;
+printf "completing invariants..";
+for f in &cat(Funs) do
+  if not IsDefined(myNuclei,f) then
+    myNuclei[f]:=getNuclei(f,One(F));
+  end if;
+end for;
+printf "done\n";
+printf "\n\n\n\n---------\nCheck intersections between families\n\n";
+listIntersectionsFam(Funs, StrFam :NucleiFun:=myNuclei,OrbitsFun:=myOrbits);
