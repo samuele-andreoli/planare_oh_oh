@@ -264,11 +264,11 @@ end function;
 
 // Correct version from Robert
 EvaluateMod := function(f,l, FE)
+  if IsZero(f) then
+    return f;
+  else
     return &+[Evaluate(ft, l) mod FE : ft in Terms(f)];
-end function;
-
-EvaluateLinearMod := function(l,f, FE)
-    return &+[Evaluate(l_term,f_term) mod FE : f_term in Terms(f), l_term in Terms(l)];
+  end if;
 end function;
 
 getCHK:=function(R)
@@ -287,13 +287,34 @@ getCHK:=function(R)
   D := x^246 + 2*x^10;
   t := x^9 + 2*x;
 
-  f := EvaluateLinearMod(L, t^2, FE) + EvaluateMod(D, t, FE) + x^2/2;
+  f := EvaluateMod(L, t^2, FE) + EvaluateMod(D, t, FE) + x^2/2;
+
+  return [f];
+end function;
+
+getCK:=function(R)
+  x:=R.1;
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+  t := x^(p) -x;
+  FE := x^(p^n) -x;
+  if [p,n] eq [3,5] then
+    L:= -x;
+    D:= -x^36 + x^28 + x^12 + x^4; 
+  elif [p,n] eq [5,5] then
+    D:=Zero(R);
+    L:=x^(5^3) + x^(5^2) + 2*x^5 + 3*x;
+  else
+    return [];
+  end if;
+  f := EvaluateMod(L, t^2, FE) + EvaluateMod(D, t, FE) + x^2/2;
 
   return [f];
 end function;
 
 
 getAllDOPlanar:=function(R)
-  return &cat[fun(R): fun in [getACW,getCHK,getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
+  return &cat[fun(R): fun in [getACW,getCK,getCHK,getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
 end function;
 
