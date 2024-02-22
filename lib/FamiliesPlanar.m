@@ -254,8 +254,12 @@ getG:=function(R)
   return [R!Interpolation([a: a in GF(p^(2*m))],Out)];
 end function;
 
-getAllDOPlanar:=function(R)
-  return &cat[fun(R): fun in [getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
+getACW:=function(R)
+  if not BaseRing(R) eq GF(3^5) then
+    return [];
+  end if;
+  x:=R.1;
+  return x^90 + x^2; 
 end function;
 
 // Correct version from Robert
@@ -287,3 +291,9 @@ getCHK:=function(R)
 
   return [f];
 end function;
+
+
+getAllDOPlanar:=function(R)
+  return &cat[fun(R): fun in [getACW,getCHK,getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
+end function;
+
