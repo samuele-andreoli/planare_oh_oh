@@ -63,7 +63,7 @@ getZKW:=function(R)
   end function;
   U:=[u: u in F|not IsZero(u) and Order(u) eq (p^(2*k)+p^k+1)];
   for s:=1 to n do
-    if IsZero( (k+s) mod 3) and IsOdd(n div GCD(s,n)) then
+    if IsZero( (k-s) mod 3) and IsOdd(n div GCD(s,n)) then
       U0:=reduceCoefficients(U,s);
       for u in U0 do
         Append(~ZKW,x^(p^s+1)-u*x^(p^k+p^(2*k+s)));
@@ -111,7 +111,7 @@ getB:=function(R)
 end function;
 
 
-getBHB:=function(R)
+getBH:=function(R)
   x:=R.1;
   F:=BaseRing(R);
   n:=Degree(F);
@@ -120,10 +120,10 @@ getBHB:=function(R)
     return [];
   end if;
   m:=n div 2;
-  BHB:=[];
+  BH:=[];
   O:={o: o in F|not IsZero(o) and IsZero(o^(p^m)+o)};
   o:=Rep(O);
-  ConditionBHB:=function(s)
+  ConditionBH:=function(s)
     for a in O do
       if IsZero(a^(p^s)+a) then
         return false;
@@ -132,18 +132,18 @@ getBHB:=function(R)
     return true;
   end function;
   for s:=1 to m do
-    if ConditionBHB(s) then
+    if ConditionBH(s) then
       orderB:=(p^m+1) div GCD(p^m+1,p^s+1);
       for b in F do
         if not IsZero(b) and not (IsDivisibleBy(orderB,Order(b^(p^m-1)))) then
           g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
-          Append(~BHB,x^(p^m+1)+o*g);
+          Append(~BH,x^(p^m+1)+o*g);
           break;
         end if;
       end for;
     end if;
   end for;
-  return BHB;
+  return BH;
 end function;
 
 //Op,Op1,Op2 are polynomials
@@ -255,7 +255,7 @@ getG:=function(R)
 end function;
 
 getAllDOPlanar:=function(R)
-  return &cat[fun(R): fun in [getG,getZP,getCG,getD,getBHB,getB,getZKW,getCMDY,getA,getFF]];
+  return &cat[fun(R): fun in [getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
 end function;
 
 // Correct version from Robert
