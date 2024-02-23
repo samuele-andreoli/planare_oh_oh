@@ -3,7 +3,8 @@ load "lib/FamiliesPlanar.m";
 load "lib/dupeq.m";
 load "lib/semifields.m";
 
-R<x>:=PolynomialRing(GF(3^8));
+F<a> := GF(3^8);
+R<x> := PolynomialRing(F);
 //The families of DO for 3^8 are FF,D,BHB,B,ZP,CG
 // Functions D are not in the classification, but according to their nuclei they are either 8.8, 8.9, or 8.9
 myRep:=PowerSequence(R)!getRepresentatives(8);

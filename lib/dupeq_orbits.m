@@ -596,3 +596,4 @@ function dupeq(f,g:monomial := false)
 
 	return process(fTT,gTT,finvTT,ginvTT,L1,L2,[],monomial);
 end function;
+

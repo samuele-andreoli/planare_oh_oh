@@ -9,22 +9,30 @@
  * as well, so this realation is symmetric and gives a correctly defined equivalence relation.
  */
 
-/* Finds the linear span of the given set of elements */
-function span(Els)
-	FF := Parent(Els[1]);
-	p := Characteristic(FF);
-
-	vecs := [ Vector(GF(p), Eltseq(e)) : e in Els ];
-	M := Matrix(vecs);
-	return { SequenceToElement( Eltseq(v), FF ) : v in RowSpace(M) };
-end function;
-
 /* The state is represented by a triple (L1, L2, P) where L1 and L2 are partial truth tables
    for l1 and l2, and P is a set of pairs of the form <x,y> meaning that {+- x} maps to {+- y}
    but we do not know the exact signs.
 */
 
 forward derivel2;
+
+function firstFree(L2)
+	F := Universe(L2);
+
+	if #F eq #L2 then
+		return Zero(F);
+	end if;
+
+	for x in F do
+		if not IsDefined(L2, x) then
+			return x;
+		end if;
+	end for;
+end function;
+
+function codomain(L2)
+	return {x : x in Universe(L2)} diff {l2x : x->l2x in L2};
+end function;
 
 /* Given a list of newly set values for L1, derives all values of L1 that can be
  * obtained from them and the currently known values. Returns:
@@ -33,52 +41,55 @@ forward derivel2;
  * - the new TT for L1;
  * - the new TT for L2;
  *   The new values are given as a sequence of inputs, e.g. newValues = [ a, b, c ]
- *   means that we now know L2[a], L2[b], and L2[c], which we did not know before.
+ *   means that we now know L1[a], L1[b], and L1[c], which we did not know before.
  */
 function derivel1(f,g,finv,ginv,L1,L2,P,newValues)
-	newP := [];
-
-	p := Characteristic(Parent(Random(L1)));
-	primeField := [ x : x in GF(p) | x ne 0 ];
+	primeField := {x : x in PrimeField(Universe(f)) | x ne 0};
 
 	/* To derive new values, we combine all known values of L1 with the new ones
 	 * using linear combinations.
 	 */
 	for v in newValues do
-		for x in Keys(L1) do
-			for c1 in primeField do
-				for c2 in primeField do
-					newX := c1*x + c2*v;
-					newY := c1*L1[x] + c2*L1[v];
+		for c2 in primeField do
+			newX2 := c2*v;
+			newY2 := c2*L1[v];
+
+			for x->l1x in L1 do
+				for c1 in primeField do
+					newX := newX2 + c1 * x;
+					newY := newY2 + c1 * l1x;
+
 					if IsDefined(L1,newX) then
 						if L1[newX] ne newY then
 							return false, [], [], [];
 						end if;
 					else
 						L1[newX] := newY;
+
 						/* Since we have l1(f(l2(x))) = g(x), and we know L1[newX], we can obtain
 						 * a contradiction in several ways:
 						 * - if newX is in the image of f, but newY is not in the image of g;
 						 * - if newX is not in the image of f, but newY is in the image of g
 						 * - if L2[newX] or L2[-newX] is already defined, but the value is
-						 *   not one of newY or -neweY
+						 *   not one of newY or -newY
 						 */
 						if IsDefined(finv, newX) then
 							if not IsDefined(ginv,newY) then
 								/* This has been confirmed to cut off unnecessary branches */
 								return false, [], [], [];
 							end if;
+
 							L2x := ginv[newY];
 							L2y := finv[newX];
 
 							if IsDefined(L2,L2x) then
-								if not L2[L2x] in { L2y, -L2y } then
+								if not L2[L2x] in {L2y, -L2y} then
 									return false, [], [], [];
 								end if;
 							end if;
 
 							if IsDefined(L2,-L2x) then
-								if not L2[-L2x] in { L2y, -L2y } then
+								if not L2[-L2x] in {L2y, -L2y} then
 									return false, [], [], [];
 								end if;
 							end if;
@@ -88,7 +99,7 @@ function derivel1(f,g,finv,ginv,L1,L2,P,newValues)
 								 * but we do not know how, so we add it to the list of
 								 * pairs that need to be resolved
 								 */
-								Append(~newP, <L2x, L2y>);
+								Include(~P, <L2x, L2y>);
 							end if;
 						else
 							if IsDefined(ginv,newY) then
@@ -102,10 +113,8 @@ function derivel1(f,g,finv,ginv,L1,L2,P,newValues)
 		end for;
 	end for;
 
-	return true, L1, L2, P cat newP;
+	return true, L1, L2, P;
 end function;
-
-
 
 /* Given a list of newly set values for L2, derives all values of L2 that can be
  * obtained from them and the known values. Returns:
@@ -116,21 +125,23 @@ end function;
  *   means that we now know L2[a], L2[b], and L2[c], which we did not know before.
  */
 function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
-	newL1 := [];
+	newL1 := {};
 
-	p := Characteristic(Parent(Random(L1)));
-	primeField := [ x : x in GF(p) | x ne 0 ];
+	primeField := {x : x in PrimeField(Universe(f)) | x ne 0};
 
 	/* To derive new values, we combine all known values of L2 with the new ones
 	 * using linear combinations.
 	 */
 
 	for v in newValues do
-		for x in Keys(L2) do
-			for c1 in primeField do
-				for c2 in primeField do
-					newX := c1*x + c2*v;
-					newY := c1*L2[x] + c2*L2[v];
+		for c2 in primeField do
+			newX2 := c2 * v;
+			newY2 := c2 * L2[v];
+
+			for x->l2x in L2 do
+				for c1 in primeField do
+					newX := newX2 + c1 * x;
+					newY := newY2 + c1 * l2x;
 
 					/* Possible contradiction */
 					if IsDefined(L2, newX) then
@@ -140,12 +151,13 @@ function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
 						end if;
 					else
 						L2[newX] := newY;
-						/* Since we know L2(newX) = newY, and L1(f(L2(x))) = g(x),
-						 * we have that L1[ f(L2(newX)) ] = g( newX ), i.e. we can
-						 * derive a new value of L1 (if it has not been defined yet
-						 */
 
-						newL1x := f[L2[newX]];
+						/* Since we know L2(newX) = newY, and L1(f(L2(x))) = g(x),
+						* we have that L1[ f(L2(newX)) ] = g( newX ), i.e. we can
+						* derive a new value of L1 (if it has not been defined yet
+						*/
+
+						newL1x := f[newY];
 						newL1y := g[newX];
 
 						/* Possible contradiction for L1 */
@@ -156,7 +168,7 @@ function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
 							end if;
 						else
 							L1[newL1x] := newL1y;
-							Append(~newL1, newL1x);
+							Include(~newL1, newL1x);
 						end if;
 					end if;
 				end for;
@@ -167,56 +179,17 @@ function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
 	/* If we have derived new values for L1, we now call the companion function for L1
 	 * to derive all possible values. If we encounter contradiction, we fail altogether.
 	 */
-	hope, L1, L2, P := derivel1(f,g,finv,ginv,L1,L2,P,newL1);
-
-	return hope, L1, L2, P;
-end function;
-
-function firstFreel2(TT)
-	FF := Parent(Random(TT));
-	B := Basis(FF);
-	for i in [1..#B] do
-		if not IsDefined(TT,B[i]) then
-			return B[i];
-		end if;
-	end for;
-	return FF ! 0;
-end function;
-
-function domainl2(f,g,L1,L2,P,b)
-	/* The possible values of l2 at b are those that lie outside of the linear subspace
-	 * spanned by the outputs of the assigned values
-	 */
-
-	/* Since b should be the first element in the basis of the finite field that
-	 * has not been assigned a value, we simply take the images of all preceding
-	 * basis elements and generate the spanned subspace.
-	 */
-	basis_elements := [];
-	FF := Parent(Random(L1));
-	B := Basis(FF);
-	i := 1;
-	while B[i] ne b do
-		Append(~basis_elements,L2[B[i]]);
-		i +:= 1;
-	end while;
-	if #basis_elements eq 0 then
-		return [ x : x in FF | x ne 0 ];
-	else
-		return [ x : x in FF | not x in span(basis_elements) ];
-	end if;
+	return derivel1(f,g,finv,ginv,L1,L2,P,newL1);
 end function;
 
 /* Note that f and g should be given as TT's (associative arrays), and finv and ginv should
  * be partially filled TT's, with the inverse of any element being one of its two preimages
  */
-function process(f,g,finv,ginv,L1,L2,P,monomial)
-	FF := Parent(Random(L1));
+function process(f, g, finv, ginv, L1, L2, P, monomial)
+	F := Universe(f);
 
-	if #Keys(L1) eq #FF and #Keys(L2) eq #Keys(L1) then
-		l1 := Interpolation([ x : x in FF ], [ L1[x] : x in FF ]);
-		l2 := Interpolation([ x : x in FF ], [ L2[x] : x in FF ]);
-		return true, l1, l2;
+	if #L1 eq #F and #L2 eq #L1 then
+		return true, L1, L2;
 	end if;
 
 	/* If we are here, we assume that all linear combinations for L1 and L2
@@ -226,16 +199,19 @@ function process(f,g,finv,ginv,L1,L2,P,monomial)
 	*/
 
 	if #P ne 0 then
-		x := P[1][1];
-		y := P[1][2];
+		pair := Rep(P);
+		Exclude(~P, pair);
+
+		x := pair[1];
+		y := pair[2];
+
 		/* We know that { -x, +x } will map to { -y, +y }, but we guess
 		   which of two possibilities will take place
 		*/
-
 		L2[-x] := -y;
 		L2[x] := y;
 
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P[2..#P], [ x ]);
+		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P,[x]);
 
 		if hope then
 			success, l1, l2 := process(f,g,finv,ginv,newL1,newL2,newP,monomial);
@@ -245,11 +221,10 @@ function process(f,g,finv,ginv,L1,L2,P,monomial)
 		end if;
 
 		/* If the first guess leads to a contradiction, do the second option */
-
 		L2[-x] := y;
 		L2[x] := -y;
 
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P[2..#P], [ -x, x ]);
+		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P,[x]);
 		if hope then
 			success, l1, l2 := process(f,g,finv,ginv,newL1,newL2,newP,monomial);
 			if success then
@@ -258,33 +233,39 @@ function process(f,g,finv,ginv,L1,L2,P,monomial)
 		end if;
 
 		/* If both options lead to contradictions, we are already in the soup */
-
 		return false, [], [];
 	end if;
 
 	/* If there are no pairs to process, we guess a value of L2 instead */
 
 	/* Get the first free element of L2 (whose value we will guess) */
-	b := firstFreel2(L2);
+	if #L2 eq 1 then
+		b := One(F);
+	else
+		b := firstFree(L2);
+	end if;
 
 	/* If all basis elements have been evaluated, firstFreel2() will return 0;
 	 * in this case, we have completely reconstructed L2, and return.
 	 */
-	if b eq 0 then
-		l1 := Interpolation([ x : x in FF ], [ L1[x] : x in FF ]);
-		l2 := Interpolation([ x : x in FF ], [ L2[x] : x in FF ]);
-		return true, l1, l2;
+	if b eq Zero(F) then
+		/* Quick and easy sanity check */
+		assert #L2 eq #L1;
+		assert #L2 eq #F;
+
+		return true, L1, L2;
 	end if;
 
 	/* Get a list of the possible values that can be assigned to L2 */
-	if monomial and b eq 1 then
-		D := [ FF ! 1 ];
+	if monomial and b eq One(F) then
+		D := [One(F)];
 	else
-		D := domainl2(f,g,L1,L2,P,b);
+		D := codomain(L2);
 	end if;
 
 	for v in D do
 		L2[b] := v;
+
 		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P,[b]);
 		if hope then
 			success, l1, l2 := process(f,g,finv,ginv,newL1,newL2,newP,monomial);
@@ -297,13 +278,11 @@ function process(f,g,finv,ginv,L1,L2,P,monomial)
 	return false, [], [];
 end function;
 
-function process(f,g,finv,ginv,L1,L2,P,monomial)
-	FF := Parent(Random(L1));
+function process_fix_l2(f, g, finv, ginv, L1, L2, P, fixX, fixY)
+	F := Universe(f);
 
-	if #Keys(L1) eq #FF and #Keys(L2) eq #Keys(L1) then
-		l1 := Interpolation([ x : x in FF ], [ L1[x] : x in FF ]);
-		l2 := Interpolation([ x : x in FF ], [ L2[x] : x in FF ]);
-		return true, l1, l2;
+	if #L1 eq #F and #L2 eq #L1 then
+		return true, L1, L2;
 	end if;
 
 	/* If we are here, we assume that all linear combinations for L1 and L2
@@ -313,152 +292,72 @@ function process(f,g,finv,ginv,L1,L2,P,monomial)
 	*/
 
 	if #P ne 0 then
-		x := P[1][1];
-		y := P[1][2];
+		pair := Rep(P);
+		Exclude(~P, pair);
+
+		x := pair[1];
+		y := pair[2];
 		/* We know that { -x, +x } will map to { -y, +y }, but we guess
 		   which of two possibilities will take place
 		*/
-
 		L2[-x] := -y;
 		L2[x] := y;
 
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P[2..#P], [ x ]);
+		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P, [x]);
 
 		if hope then
-			success, l1, l2 := process(f,g,finv,ginv,newL1,newL2,newP,monomial);
+			success, l1, l2 := process_fix_l2(f, g, finv, ginv, newL1, newL2, newP, fixX, fixY);
 			if success then
 				return true, l1, l2;
 			end if;
 		end if;
 
 		/* If the first guess leads to a contradiction, do the second option */
-
 		L2[-x] := y;
 		L2[x] := -y;
 
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P[2..#P], [ -x, x ]);
+		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P, [x]);
 		if hope then
-			success, l1, l2 := process(f,g,finv,ginv,newL1,newL2,newP,monomial);
+			success, l1, l2 := process_fix_l2(f, g, finv, ginv, newL1, newL2, newP, fixX, fixY);
 			if success then
 				return true, l1, l2;
 			end if;
 		end if;
 
 		/* If both options lead to contradictions, we are already in the soup */
-
 		return false, [], [];
 	end if;
 
 	/* If there are no pairs to process, we guess a value of L2 instead */
 
 	/* Get the first free element of L2 (whose value we will guess) */
-	b := firstFreel2(L2);
-
-	/* If all basis elements have been evaluated, firstFreel2() will return 0;
-	 * in this case, we have completely reconstructed L2, and return.
-	 */
-	if b eq 0 then
-		l1 := Interpolation([ x : x in FF ], [ L1[x] : x in FF ]);
-		l2 := Interpolation([ x : x in FF ], [ L2[x] : x in FF ]);
-		return true, l1, l2;
-	end if;
-
-	/* Get a list of the possible values that can be assigned to L2 */
-	if monomial and b eq 1 then
-		D := [ FF ! 1 ];
+	if #L2 eq 1 then
+		b := fixX;
 	else
-		D := domainl2(f,g,L1,L2,P,b);
+		b := firstFree(L2);
 	end if;
-
-	for v in D do
-		L2[b] := v;
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P,[b]);
-		if hope then
-			success, l1, l2 := process(f,g,finv,ginv,newL1,newL2,newP,monomial);
-			if success then
-				return true, l1, l2;
-			end if;
-		end if;
-	end for;
-
-	return false, [], [];
-end function;
-
-function process_fix_l2(f,g,finv,ginv,L1,L2,P,fixX,fixY)
-	FF := Parent(Random(L1));
-
-	if #Keys(L1) eq #FF and #Keys(L2) eq #Keys(L1) then
-		l1 := Interpolation([ x : x in FF ], [ L1[x] : x in FF ]);
-		l2 := Interpolation([ x : x in FF ], [ L2[x] : x in FF ]);
-		return true, l1, l2;
-	end if;
-
-	/* If we are here, we assume that all linear combinations for L1 and L2
-	   have already been derived. We thus need to either:
-	   1) Process more pairs from P, or
-	   2) Guess a new value of e.g. L2 if no pairs remain to be processed
-	*/
-
-	if #P ne 0 then
-		x := P[1][1];
-		y := P[1][2];
-		/* We know that { -x, +x } will map to { -y, +y }, but we guess
-		   which of two possibilities will take place
-		*/
-
-		L2[-x] := -y;
-		L2[x] := y;
-
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P[2..#P], [ x ]);
-
-		if hope then
-			success, l1, l2 := process_fix_l2(f,g,finv,ginv,newL1,newL2,newP,fixX,fixY);
-			if success then
-				return true, l1, l2;
-			end if;
-		end if;
-
-		/* If the first guess leads to a contradiction, do the second option */
-
-		L2[-x] := y;
-		L2[x] := -y;
-
-		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P[2..#P], [ -x, x ]);
-		if hope then
-			success, l1, l2 := process_fix_l2(f,g,finv,ginv,newL1,newL2,newP,fixX,fixY);
-			if success then
-				return true, l1, l2;
-			end if;
-		end if;
-
-		/* If both options lead to contradictions, we are already in the soup */
-
-		return false, [], [];
-	end if;
-
-	/* If there are no pairs to process, we guess a value of L2 instead */
-
-	/* Get the first free element of L2 (whose value we will guess) */
-	b := firstFreel2(L2);
 
 	/* If all basis elements have been evaluated, firstFreel2() will return 0;
 	 * in this case, we have completely reconstructed L2, and return.
 	 */
 	if b eq 0 then
-		l1 := Interpolation([ x : x in FF ], [ L1[x] : x in FF ]);
-		l2 := Interpolation([ x : x in FF ], [ L2[x] : x in FF ]);
-		return true, l1, l2;
+		/* Quick and easy sanity check */
+		assert #L2 eq #L1;
+		assert #L2 eq #F;
+
+		return true, L1, L2;
 	end if;
 
 	/* Get a list of the possible values that can be assigned to L2 */
 	if b eq fixX then
-		D := [ FF ! fixY ];
+		D := [fixY];
 	else
-		D := domainl2(f,g,L1,L2,P,b);
+		D := codomain(L2);
 	end if;
 
 	for v in D do
 		L2[b] := v;
+
 		hope, newL1, newL2, newP := derivel2(f,g,finv,ginv,L1,L2,P,[b]);
 		if hope then
 			success, l1, l2 := process_fix_l2(f,g,finv,ginv,newL1,newL2,newP,fixX,fixY);
@@ -474,40 +373,184 @@ end function;
 /* Fixes L1(fixX) to fixY, and tries to find a pair (L1, L2)
  * satisfying this condition
  */
-function dupeq_fixed_l1(f,g,fixX,fixY)
-	FF := BaseRing(Parent(f));
-	fTT := AssociativeArray();
-	gTT := AssociativeArray();
-	finvTT := AssociativeArray();
-	ginvTT := AssociativeArray();
-	for x in FF do
-		fy := Evaluate(f,x);
-		gy := Evaluate(g,x);
-		fTT[x] := fy;
-		gTT[x] := gy;
-		finvTT[fy] := Min({x,-x});
-		ginvTT[gy] := Min({x,-x});
-	end for;
+function dupeq_fixed_l1(fTT,finvTT,gTT,ginvTT,fixX,fixY)
+	F := Universe(fTT);
 
 	L1 := AssociativeArray();
 	L2 := AssociativeArray();
-	L1[FF ! 0] := FF ! 0;
-	L2[FF ! 0] := FF ! 0;
-	L1[fixX] := fixY;
 
-	return process(fTT,gTT,finvTT,ginvTT,L1,L2,[],false);
+	L1[Zero(F)] := Zero(F);
+	L1[fixX] := fixY;
+	L1[-fixX] := -fixY;
+
+	L2[Zero(F)] := Zero(F);
+
+	success, L1, L2 :=  process(fTT,gTT,finvTT,ginvTT,L1,L2,[]);
+	if success then
+		for x in F do
+			assert L1[fTT[L2[x]]] eq gTT[x];
+		end for;
+
+		assert L1[fixX] eq fixY;
+	end if;
+
+	return success, L1, L2;
 end function;
 
 /* Fixes L2(fixX) to fixY, and tries to find a pair (L1, L2)
  * satisfying this condition
  */
-function dupeq_fixed_l2(f,g,fixX,fixY)
-	FF := BaseRing(Parent(f));
+function dupeq_fixed_l2(fTT,finvTT,gTT,ginvTT,fixX,fixY)
+	F := Universe(fTT);
+
+	L1 := AssociativeArray();
+	L2 := AssociativeArray();
+
+	L1[Zero(F)] := Zero(F);
+	L2[Zero(F)] := Zero(F);
+
+	success, L1, L2 := process_fix_l2(fTT,gTT,finvTT,ginvTT,L1,L2,[],fixX,fixY);
+	if success then
+		for x in F do
+			assert L1[fTT[L2[x]]] eq gTT[x];
+		end for;
+
+		assert L2[fixX] eq fixY;
+	end if;
+
+	return success, L1, L2;
+end function;
+
+function trivialPartition(f)
+	F := BaseRing(Parent(f));
+	n := Degree(F);
+	p := Characteristic(F);
+
+	coeff := {c : c in Coefficients(f)};
+
+	subfields := {sub<F|d> : d in Divisors(n)};
+	for s in subfields do
+		if coeff subset s then
+			d := Degree(s);
+			m := n div d;
+
+			break;
+		end if;
+	end for;
+
+	elements := {x:x in F|not IsZero(x)};
+	orbits := {};
+
+	while #elements gt 0 do
+		x := Rep(elements);
+		orbit := {c*x^(3^(d*i)) : c in {1,2}, i in [0..m-1]};
+
+		elements diff:= orbit;
+		Include(~orbits, orbit);
+	end while;
+
+	return orbits;
+end function;
+
+closeOrbitsByL2 := function(orbits, L2, orbit_idx)
+	to_close_idx := 1;
+
+	/* If it is equal there is only one orbit left to close */
+	while to_close_idx lt #orbits do
+		orbit := orbits[to_close_idx];
+		xs_to_examine := orbit;
+
+		/* We might have merged all the orbits left to close, so check */
+		while #xs_to_examine gt 0 and to_close_idx lt #orbits do
+			x := xs_to_examine[1];
+			xs_to_examine := xs_to_examine[2..#xs_to_examine];
+
+			lx := L2[x];
+
+			if lx in orbit then
+				continue;
+			end if;
+
+			out_o := {};
+			for o in orbits[(to_close_idx+1)..#orbits] do
+				if lx in o then
+					out_o := o;
+					break;
+				end if;
+			end for;
+
+			/* Keep track of the orbit before which we have checked there is no mapping with the current orbit.
+			 * If we are removing a orbit before, then we need to reduce the index by one.
+			 * If we are joining it, then then next one becomes the target (no action needed).
+			 * If we are removing one after it, then no action is needed.
+			 */
+			merging_idx := Index(orbits, out_o);
+			if merging_idx lt orbit_idx then
+				orbit_idx -:= 1;
+			end if;
+
+			xs_to_examine cat:= out_o;
+			orbit cat:= out_o;
+
+			orbits[to_close_idx] := orbit;
+			Remove(~orbits, merging_idx);
+		end while;
+
+		// At this point we tried merging this orbit and all the
+		// orbits merged with it with all other orbits.
+		to_close_idx +:= 1;
+	end while;
+
+	return orbits, orbit_idx;
+end function;
+
+partitionByL2 := function(f)
+	F := BaseRing(Parent(f));
+
+	raw_orbits := [[o : o in orbit] : orbit in trivialPartition(f)];
+
+	orbits := [];
+
+	fTT := AssociativeArray();
+	finvTT := AssociativeArray();
+
+	for x in F do
+		fy := Evaluate(f,x);
+		fTT[x] := fy;
+		finvTT[fy] := Min({x,-x});
+	end for;
+
+	while #raw_orbits gt 0 do
+		#raw_orbits;
+		e := raw_orbits[1][1];
+
+		target_index := 2;
+		while target_index le #raw_orbits do
+			success, l1, l2 := dupeq_fixed_l2(fTT, finvTT, fTT, finvTT, e, raw_orbits[target_index][1]);
+			target_index +:= 1;
+
+			if success then
+				raw_orbits, target_index := closeOrbitsByL2(raw_orbits, l2, target_index);
+			end if;
+		end while;
+
+		// We checked that raw_orbits[1] does not map to anything else.
+		Append(~orbits, raw_orbits[1]);
+		raw_orbits := raw_orbits[2..#raw_orbits];
+	end while;
+
+	return {{e : e in orbit} : orbit in orbits};
+end function;
+
+/* Given a list of representatives from each orbit of L2 w.r.t, checks equivalence */
+function dupeq_with_l2_representatives(f, g, f_representatives)
+	F := BaseRing(Parent(f));
+
 	fTT := AssociativeArray();
 	gTT := AssociativeArray();
 	finvTT := AssociativeArray();
 	ginvTT := AssociativeArray();
-	for x in FF do
+	for x in F do
 		fy := Evaluate(f,x);
 		gy := Evaluate(g,x);
 		fTT[x] := fy;
@@ -516,54 +559,15 @@ function dupeq_fixed_l2(f,g,fixX,fixY)
 		ginvTT[gy] := Min({x,-x});
 	end for;
 
-	L1 := AssociativeArray();
-	L2 := AssociativeArray();
-	L1[FF ! 0] := FF ! 0;
-	L2[FF ! 0] := FF ! 0;
-	L2[fixX] := fixY;
-
-	return process_fix_l2(fTT,gTT,finvTT,ginvTT,L1,L2,[],fixX,fixY);
-end function;
-
-/* Partitions the non-zero elements of the finite field into orbits w.r.t. L2, as described above */
-function partitionByL2(f)
-	FF := BaseRing(Parent(f));
-	remaining := { x : x in FF | x ne 0 };
-	orbits := [];
-	L2s := [];
-	while #remaining gt 0 do
-		e := Random(remaining);
-		orbit := { e };
-		for target in remaining do
-			if target in orbit then
-				continue;
-			end if;
-			doesEmapToTarget, l1, l2 := dupeq_fixed_l2(f,f,e,target);
-			if doesEmapToTarget then
-				Append(~L2s,l2);
-				newElements := { e, target };
-				countBefore := 0;
-				while #newElements gt countBefore do
-					newElements join:= { Evaluate(l2, x) : x in newElements, l2 in L2s };
-					countBefore := #newElements;
-				end while;
-				orbit join:= newElements;
-			end if;
-		end for;
-		Append(~orbits, orbit);
-		remaining diff:= orbit;
-	end while;
-
-	return orbits;
-end function;
-
-/* Given a list of representatives from each orbit of L2, checks equivalence */
-function dupeq_with_l2_representatives(f,g,representatives)
 	/* Attempt to assign L2(1) = r for each representative and see if something works */
-	for r in representatives do
-		tf, l1, l2 := dupeq_fixed_l2(f,g,1,r);
-		if tf then
-			return tf, l1, l2;
+	for r in f_representatives do
+		success, l1, l2 := dupeq_fixed_l2(fTT,finvTT,gTT,ginvTT,One(F),r);
+		if success then
+			for x in F do
+				assert L1[fTT[L2[x]]] eq gTT[x];
+			end for;
+
+			return success, l1, l2;
 		end if;
 	end for;
 	return false, [], [];
@@ -575,12 +579,13 @@ end function;
    non-zero element to 1.
 */
 function dupeq(f,g:monomial := false)
-	FF := BaseRing(Parent(f));
+	F := BaseRing(Parent(f));
+
 	fTT := AssociativeArray();
 	gTT := AssociativeArray();
 	finvTT := AssociativeArray();
 	ginvTT := AssociativeArray();
-	for x in FF do
+	for x in F do
 		fy := Evaluate(f,x);
 		gy := Evaluate(g,x);
 		fTT[x] := fy;
@@ -591,27 +596,15 @@ function dupeq(f,g:monomial := false)
 
 	L1 := AssociativeArray();
 	L2 := AssociativeArray();
-	L1[FF ! 0] := FF ! 0;
-	L2[FF ! 0] := FF ! 0;
+	L1[Zero(F)] := Zero(F);
+	L2[Zero(F)] := Zero(F);
 
-	return process(fTT,gTT,finvTT,ginvTT,L1,L2,[],monomial);
-end function;
+	success, l1, l2 := process(fTT,gTT,finvTT,ginvTT,L1,L2,[],monomial);
+	if success then
+		for x in F do
+			assert L1[fTT[L2[x]]] eq gTT[x];
+		end for;
+	end if;
 
-function LinInqeuivalentToF(f, List)
-    LinInequiv := [];
-
-    if #List eq 0 then
-	    return [f];
-    end if;
-
-    orbits := partitionByL2(f);
-    orbits := [Rep(o) : o in orbits];
-
-    for g in List do
-        if not dupeq_with_l2_representatives(f,g,orbits) then
-            Append(~LinInequiv, g);
-        end if;
-    end for;
-
-    return LinInequiv;
+	return success, l1, l2;
 end function;

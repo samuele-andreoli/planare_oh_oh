@@ -2,7 +2,7 @@ load "lib/representatives.m";
 load "lib/ccz_equivalence.m";
 load "lib/semifields.m";
 load "lib/planar.m";
-load "lib/dupeq_orbits.m";
+load "lib/dupeq.m";
 
 
 computeInvariantTable := procedure(n)
