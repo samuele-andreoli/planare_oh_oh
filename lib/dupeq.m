@@ -564,7 +564,7 @@ function dupeq_with_l2_representatives(f, g, f_representatives)
 		success, l1, l2 := dupeq_fixed_l2(fTT,finvTT,gTT,ginvTT,One(F),r);
 		if success then
 			for x in F do
-				assert L1[fTT[L2[x]]] eq gTT[x];
+				assert l1[fTT[l2[x]]] eq gTT[x];
 			end for;
 
 			return success, l1, l2;
@@ -602,7 +602,7 @@ function dupeq(f,g:monomial := false)
 	success, l1, l2 := process(fTT,gTT,finvTT,ginvTT,L1,L2,[],monomial);
 	if success then
 		for x in F do
-			assert L1[fTT[L2[x]]] eq gTT[x];
+			assert l1[fTT[l2[x]]] eq gTT[x];
 		end for;
 	end if;
 
