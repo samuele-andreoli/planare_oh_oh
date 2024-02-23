@@ -1,9 +1,5 @@
-load "lib/ccz_equivalence.m";
 load "lib/invariantTable.m";
-load "lib/semifields.m";
 load "lib/dupeq.m";
-
-load "lib/planar.m";
 
 /* Search parameters. Modify here */
 
@@ -173,13 +169,17 @@ end for;
 
 PrintFile(inequivalent_filename, "equivalence_classes := AssociativeArray();\n");
 
-interesting_r := [
-    a^714*x^244 + a^2074*x^84 + x^82,
-    a^418*x^2188 + a^4338*x^108 + x^82,
-    a^3608*x^1458 + a^3608*x^738 + a^3810*x^486 + a^3810*x^246 + a^3413*x^162 + a^3413*x^82 + a^3608*x^18 + a^3810*x^6 + a^2565*x^2,
-    a^164*x^1458 + a^164*x^738 + a^950*x^486 + a^950*x^246 + a^616*x^162 + a^616*x^82 + a^164*x^18 + a^950*x^6 + a^6297*x^2,
-    a^264*x^1458 + x^82
-];
+if n eq 8 then
+    interesting_r := [
+        a^3608*x^1458 + a^3608*x^738 + a^3810*x^486 + a^3810*x^246 + a^3413*x^162 + a^3413*x^82 + a^3608*x^18 + a^3810*x^6 + a^2565*x^2,
+        a^164*x^1458 + a^164*x^738 + a^950*x^486 + a^950*x^246 + a^616*x^162 + a^616*x^82 + a^164*x^18 + a^950*x^6 + a^6297*x^2,
+    ];
+elif n eq 6 then
+    interesting_r := [
+        x^270 + 2*x^244 + a^449*x^162 + a^449*x^84 + a^534*x^54 + 2*x^36 + a^534*x^28 + x^10 + a^449*x^6 + a^279*x^2,
+        x^486 + x^252 + a^561*x^162 + a^561*x^84 + a^183*x^54 + a^183*x^28 + x^18 + a^561*x^6 + a^209*x^2
+    ]
+end if;
 
 for k->v in equivalence_classes do
     if not k in interesting_r then
