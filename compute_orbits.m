@@ -1,5 +1,5 @@
 load "lib/invariantTable.m";
 
-SetOutputFile("orbits.out");
+SetLogFile("orbits.out": Overwrite:= true);
 computeOrbitsTable();
-UnsetOutputFile();
+UnsetLogFile();
