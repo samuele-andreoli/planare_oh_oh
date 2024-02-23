@@ -37,12 +37,12 @@ RemovePower:=procedure(~Fun)
   end if;
 end procedure;
 
-ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray(),AutomorphismsFun:=AssociativeArray())
-  testEquivalence:=function(f,g)
+testEquivalence:=function(f,g:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun)
     iObol:=IsDefined(OrbitsFun,f);
     jObol:=IsDefined(OrbitsFun,g);
     Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
     Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
+
     if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
       return false;
     elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
@@ -62,11 +62,39 @@ ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeAr
     end if;
     error "";
   end function;
+
+
+//this is to check dupeq_with_...
+testEquivalenceFlag:=function(f,g:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray(),AutomorphismsFun:=AssociativeArray())
+  iObol:=IsDefined(OrbitsFun,f);
+  jObol:=IsDefined(OrbitsFun,g);
+  Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
+  Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
+
+  if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
+    return false;
+  elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
+    return false;
+  else
+    if isMonomial(f) then
+      return dupeq(f,g:monomial:=true);
+    elif isMonomial(g) then 
+      return dupeq(g,f:monomial:=true);
+    else
+      return dupeq(g,f);
+    end if;
+  end if;
+  error "";
+end function;
+
+
+
+ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray(),AutomorphismsFun:=AssociativeArray())
   if not IsEmpty(Fun) then
     R:=Parent(Fun[1]);
     for i:=#Fun to 1 by -1 do
       for j:=1 to (i-1) do
-        if testEquivalence(Fun[i],Fun[j]) then
+        if testEquivalence(Fun[i],Fun[j]:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun) then
           Remove(~Fun,i);
           break;
         end if;
@@ -76,32 +104,7 @@ ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeAr
   Fun:=SetToSequence(SequenceToSet(Fun));
 end procedure;
 
-ReduceRepFun:=procedure(~Fun,myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun)
-  testEquivalence:=function(f,g)
-    iObol:=IsDefined(OrbitsFun,f);
-    jObol:=IsDefined(OrbitsFun,g);
-    Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
-    Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
-
-    if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
-      return false;
-    elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
-      return false;
-    elif iObol then
-      return dupeq_with_l2_representatives(f,g,OrbitsFun[f]);
-    elif jObol then
-      return dupeq_with_l2_representatives(g,f,OrbitsFun[g]);
-    else
-      if isMonomial(f) then
-        return dupeq(f,g:monomial:=true);
-      elif isMonomial(g) then 
-        return dupeq(g,f:monomial:=true);
-      else
-        return dupeq(g,f);
-      end if;
-    end if;
-    error "";
-  end function;
+ReduceRepFun:=procedure(~Fun,myRep:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray(),AutomorphismsFun:=AssociativeArray())
   if not IsEmpty(Fun) then
     R:=Parent(Fun[1]);
     for i:=#Fun to 1 by -1 do
@@ -109,13 +112,21 @@ ReduceRepFun:=procedure(~Fun,myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,Aut
       if not f in myRep then
         flag:=true;
         for g in myRep do
-          if isDOPolynomial(g) and testEquivalence(f,g) then
+          if isDOPolynomial(g) and testEquivalence(f,g:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun) then
             Fun[i]:=g;
             flag:=false;
             break;
           end if;
         end for;
-        if flag then printf "\n\n function %o is new !!!",f; end if;
+        if flag then 
+          printf "\n\n function %o is new !!!",f;
+          //this is to check dupeq_with_...
+          for g in myRep do
+            if isDOPolynomial(g) and testEquivalenceFlag(f,g:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun) then
+              error "";
+            end if;
+          end for; 
+        end if;
       end if;
     end for;
   end if;
@@ -140,31 +151,6 @@ SplitFun:=procedure(~Fun,~NucleiFun:OrbitsFun:=AssociativeArray(),AutomorphismsF
     end if;
   end for;
 
-  testEquivalence:=function(f,g)
-    iObol:=IsDefined(OrbitsFun,f);
-    jObol:=IsDefined(OrbitsFun,g);
-    Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
-    Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
-    if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
-      return false;
-    elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
-      return false;
-    elif iObol then
-      return dupeq_with_l2_representatives(f,g,OrbitsFun[f]);
-    elif jObol then
-      return dupeq_with_l2_representatives(g,f,OrbitsFun[g]);
-    else
-      if isMonomial(f) then
-        return dupeq(f,g:monomial:=true);
-      elif isMonomial(g) then 
-        return dupeq(g,f:monomial:=true);
-      else
-        return dupeq(g,f);
-      end if;
-    end if;
-    error "";
-  end function;
-
   getNewSplit:=function(f)
     star:=function(u,v)
         return Evaluate(f,u+v) - Evaluate(f,u) - Evaluate(f,v);
@@ -179,7 +165,7 @@ SplitFun:=procedure(~Fun,~NucleiFun:OrbitsFun:=AssociativeArray(),AutomorphismsF
     CandidatesB:={Rep({asterisk(u,b): u in N|not IsZero(u)}): b in (Nm diff N)};
     for b in CandidatesB do
       f1:=Interpolation([u: u in F],[asterisk(asterisk(b,u),u): u in F]);
-      if not testEquivalence(f,f1) then
+      if not testEquivalence(f,f1:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun) then
         return f1;
       end if;
     end for;
@@ -201,7 +187,7 @@ SplitFun:=procedure(~Fun,~NucleiFun:OrbitsFun:=AssociativeArray(),AutomorphismsF
     if not Fun[i] eq NewFun[i] then
       bolNew:=true;
       for j in Exclude([1..card],i) do
-        if testEquivalence(Fun[j],NewFun[i]) then
+        if testEquivalence(Fun[j],NewFun[i]:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun) then
           bolNew:=false;
           break;
         end if;
@@ -239,7 +225,7 @@ ClassifyFun:=procedure(n)
   Funs:=[[ReducePolyForm(f): f in Fun]: Fun in Funs];
   StrFam:=["G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
   printf "\n\nNumber of functions %o\n",#(&cat(Funs));
-  for i:=1 to #Funs do
+  for i:=2 to #Funs do
     printf "\n\n\n---------\nFamily %o\n\n",StrFam[i];
     printf "removing monomials...";
     RemovePower(~Funs[i]);
