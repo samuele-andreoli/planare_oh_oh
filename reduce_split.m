@@ -179,11 +179,12 @@ ClassifyFun:=procedure(n)
   OrbitsFun:=AssociativeArray();
   AutomorphismsFun:=AssociativeArray();
   StrFam:=["G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
+  printf "\n\nNumber of functions %o\n",#(&cat(Funs));
   for i:=1 to #Funs do
-    printf "\n\n\n\n---------\nFamily %o\n\n",StrFam[i];
+    printf "\n\n\n---------\nFamily %o\n\n",StrFam[i];
     printf "removing monomials...";
     RemovePower(~Funs[i]);
-    printf "done\n";
+    printf "done\t Number of functions %o\n",#Funs[i];
     printf "computing invariants...";
     for f in Funs[i] do
       if not IsDefined(NucleiFun,f) then
@@ -193,20 +194,18 @@ ClassifyFun:=procedure(n)
     printf "done\n";
     printf "reducing functions...";
     ReduceFun(~Funs[i]:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
-    printf "done\n";
+    printf "done\t Number of functions %o\n",#Funs[i];
     printf "splitting functions...";
     SplitFun(~Funs[i],~NucleiFun:OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
-    printf "done\n";
-    printf "\nNumber of classes %o\n",#Funs[i];
+    printf "done\t Number of functions %o\n",#Funs[i];
     printf "computing new nuclei...";
     for f in Funs[i] do
       if not IsDefined(NucleiFun,f) then
         NucleiFun[f]:=getNuclei(f,One(F));
       end if;
     end for;
-    printf "done\n";
   end for;
-  printf "\n\n\n\n---------\nCheck intersections between families\n\n";
+  printf "\n\n\n---------\nCheck intersections between families\n\n";
   testEquivalence:=function(f,g)
     iObol:=IsDefined(OrbitsFun,f);
     jObol:=IsDefined(OrbitsFun,g);
@@ -249,4 +248,4 @@ ClassifyFun:=procedure(n)
   end for;
 end procedure;
 
-ClassifyFun(6);
+ClassifyFun(8);
