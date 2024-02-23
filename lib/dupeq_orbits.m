@@ -574,7 +574,7 @@ end function;
    non-zero element to 1.
 */
 function dupeq(f,g:monomial := false)
-	FF := BaseRing(Parent(f));
+	F := BaseRing(Parent(f));
 
 	fTT := AssociativeArray();
 	gTT := AssociativeArray();
