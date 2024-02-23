@@ -3,6 +3,7 @@ load "lib/semifields.m";
 load "lib/planar.m";
 load "lib/FamiliesPlanar.m";
 load "lib/representatives.m";
+load "lib/invariantTable.m";
 
 isMonomial:=function(f)
   return #SequenceToSet(Coefficients(f)) eq 2;
@@ -35,7 +36,7 @@ RemovePower:=procedure(~Fun)
     end for;
   end if;
 end procedure;
-//also removes all function eq to monomials
+
 ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeArray(),AutomorphismsFun:=AssociativeArray())
   testEquivalence:=function(f,g)
     iObol:=IsDefined(OrbitsFun,f);
@@ -73,6 +74,48 @@ ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeAr
     end for;
   end if;
 end procedure;
+
+ReduceRepFun:=function(~Funs,myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun)
+  testEquivalence:=function(f,g)
+    iObol:=IsDefined(OrbitsFun,f);
+    jObol:=IsDefined(OrbitsFun,g);
+    Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
+    Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
+    if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
+      return false;
+    elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
+      return false;
+    elif iObol then
+      return dupeq_with_l2_representatives(f,g,OrbitsFun[f]);
+    elif jObol then
+      return dupeq_with_l2_representatives(g,f,OrbitsFun[g]);
+    else
+      if isMonomial(f) then
+        return dupeq(f,g:monomial:=true);
+      elif isMonomial(g) then 
+        return dupeq(g,f:monomial:=true);
+      else
+        return dupeq(g,f);
+      end if;
+    end if;
+    error "";
+  end function;
+  if not IsEmpty(Fun) then
+    R:=Parent(Fun[1]);
+    for i:=#Fun to 1 by -1 do
+      f:=Fun[i];
+      if not f in myRep then
+        for g in myRep do
+          if testEquivalence(f,g) then
+            Fun[i]:=g;
+            break;
+          end if;
+        end for;
+      end if;
+    end for;
+  end if;
+end procedure;
+
 
 SplitFun:=procedure(~Fun,~NucleiFun:OrbitsFun:=AssociativeArray(),AutomorphismsFun:=AssociativeArray())
 
@@ -171,13 +214,20 @@ end function;
 
 
 ClassifyFun:=procedure(n)
-  F<a>:=GF(3^n);
-  R<x>:=PolynomialRing(F);
+  NucleiFun:=AssociativeArray();
+  OrbitsFun:=getOrbitsTable(n);
+  AutomorphismsFun:=AssociativeArray();
+  R<x>:=Parent(Rep(Keys(OrbitsFun)));
+  F<a>:=BaseRing(R);
+  myRep:=PowerSequence(R)!getRepresentatives(n);
+  assert Keys(OrbitsFun) subset SequenceToSet(myRep);
+  printf "\ncomputing invariants of my representatives...";
+  for f in myRep do 
+    NucleiFun[f]:=getNuclei(f,One(F)); 
+  end for;
+  printf "done\n";
   Funs:=[fun(R): fun in [getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
   Funs:=[[ReducePolyForm(f): f in Fun]: Fun in Funs];
-  NucleiFun:=AssociativeArray();
-  OrbitsFun:=AssociativeArray();
-  AutomorphismsFun:=AssociativeArray();
   StrFam:=["G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
   printf "\n\nNumber of functions %o\n",#(&cat(Funs));
   for i:=1 to #Funs do
@@ -192,6 +242,9 @@ ClassifyFun:=procedure(n)
       end if;
     end for;
     printf "done\n";
+    printf "reducing functions with respect to my representatives...";
+    ReduceRepFun(~Funs[i],myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
+    printf "done\t Number of functions %o\n",#Funs[i];
     printf "reducing functions...";
     ReduceFun(~Funs[i]:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
     printf "done\t Number of functions %o\n",#Funs[i];
@@ -204,48 +257,21 @@ ClassifyFun:=procedure(n)
         NucleiFun[f]:=getNuclei(f,One(F));
       end if;
     end for;
+    printf "done\n";
+    printf "reducing functions with respect to my representatives...";
+    ReduceRepFun(~Funs[i],myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
+    printf "done\t Number of functions %o\n",#Funs[i];
   end for;
   printf "\n\n\n---------\nCheck intersections between families\n\n";
-  testEquivalence:=function(f,g)
-    iObol:=IsDefined(OrbitsFun,f);
-    jObol:=IsDefined(OrbitsFun,g);
-    Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
-    Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
-    if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
-      return false;
-    elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
-      return false;
-    elif iObol then
-      return dupeq_with_l2_representatives(f,g,OrbitsFun[f]);
-    elif jObol then
-      return dupeq_with_l2_representatives(g,f,OrbitsFun[g]);
-    else
-      if isMonomial(f) then
-        return dupeq(f,g:monomial:=true);
-      elif isMonomial(g) then 
-        return dupeq(g,f:monomial:=true);
-      else
-        return dupeq(g,f);
-      end if;
-    end if;
-    error "";
-  end function;
-  myRep:=PowerSequence(R)!getRepresentatives(n);
   for i:=1 to #myRep do
     printf "\n%o.%o\t",n,i;
     f:=myRep[i];
-    if not IsDefined(NucleiFun,f) then
-    	NucleiFun[f]:=getNuclei(f,One(F));
-    end if;
     for j:=1 to #Funs do
-      for g in Funs[j] do
-        if testEquivalence(f,g) then
-          printf "%o\t",StrFam[j];
-          break;
-        end if;
-      end for;
+      if f in Funs[j] then
+        printf "%o\t",StrFam[j];
+      end if;
     end for;
   end for;
 end procedure;
 
-ClassifyFun(8);
+ClassifyFun(6);
