@@ -501,8 +501,6 @@ closeOrbitsByL2 := function(orbits, L2, orbit_idx)
 		to_close_idx +:= 1;
 	end while;
 
-	orbits;
-
 	return orbits, orbit_idx;
 end function;
 
