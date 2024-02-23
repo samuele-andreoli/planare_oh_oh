@@ -1,4 +1,4 @@
-load "lib/dupeq_orbits.m";
+load "lib/dupeq.m";
 load "lib/semifields.m";
 load "lib/planar.m";
 load "lib/FamiliesPlanar.m";
@@ -73,14 +73,16 @@ ReduceFun:=procedure(~Fun:NucleiFun:=AssociativeArray(),OrbitsFun:=AssociativeAr
       end for;
     end for;
   end if;
+  Fun:=SetToSequence(SequenceToSet(Fun));
 end procedure;
 
-ReduceRepFun:=function(~Funs,myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun)
+ReduceRepFun:=procedure(~Fun,myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun)
   testEquivalence:=function(f,g)
     iObol:=IsDefined(OrbitsFun,f);
     jObol:=IsDefined(OrbitsFun,g);
     Nbol:=IsDefined(NucleiFun,f) and IsDefined(NucleiFun,g);
     Abol:=IsDefined(AutomorphismsFun,f) and IsDefined(AutomorphismsFun,g);
+
     if Nbol and [#NN:NN in NucleiFun[f]] ne [#NN:NN in NucleiFun[g]] then
       return false;
     elif Abol and AutomorphismsFun[f] ne AutomorphismsFun[g] then
@@ -105,15 +107,19 @@ ReduceRepFun:=function(~Funs,myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,Aut
     for i:=#Fun to 1 by -1 do
       f:=Fun[i];
       if not f in myRep then
+        flag:=true;
         for g in myRep do
-          if testEquivalence(f,g) then
+          if isDOPolynomial(g) and testEquivalence(f,g) then
             Fun[i]:=g;
+            flag:=false;
             break;
           end if;
         end for;
+        if flag then printf "\n\n function %o is new !!!",f; end if;
       end if;
     end for;
   end if;
+  Fun:=SetToSequence(SequenceToSet(Fun));
 end procedure;
 
 
@@ -205,6 +211,7 @@ SplitFun:=procedure(~Fun,~NucleiFun:OrbitsFun:=AssociativeArray(),AutomorphismsF
       end if;
     end if;
   end for;
+  Fun:=SetToSequence(SequenceToSet(Fun));
 end procedure;
 ReducePolyForm:=function(f)
   R:=Parent(f);
@@ -214,7 +221,7 @@ end function;
 
 
 ClassifyFun:=procedure(n)
-  NucleiFun:=AssociativeArray();
+  NucleiFun:=getNucleiTable(n);
   OrbitsFun:=getOrbitsTable(n);
   AutomorphismsFun:=AssociativeArray();
   R<x>:=Parent(Rep(Keys(OrbitsFun)));
@@ -223,7 +230,9 @@ ClassifyFun:=procedure(n)
   assert Keys(OrbitsFun) subset SequenceToSet(myRep);
   printf "\ncomputing invariants of my representatives...";
   for f in myRep do 
-    NucleiFun[f]:=getNuclei(f,One(F)); 
+    if isDOPolynomial(f) and not IsDefined(NucleiFun,f) then
+      NucleiFun[f]:=getNuclei(f,One(F));
+    end if; 
   end for;
   printf "done\n";
   Funs:=[fun(R): fun in [getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
@@ -235,29 +244,25 @@ ClassifyFun:=procedure(n)
     printf "removing monomials...";
     RemovePower(~Funs[i]);
     printf "done\t Number of functions %o\n",#Funs[i];
-    printf "computing invariants...";
+    printf "reducing functions with respect to my representatives...";
+    ReduceRepFun(~Funs[i],myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
+    printf "done\t Number of functions %o\n",#Funs[i];
     for f in Funs[i] do
       if not IsDefined(NucleiFun,f) then
         NucleiFun[f]:=getNuclei(f,One(F));
       end if;
     end for;
-    printf "done\n";
-    printf "reducing functions with respect to my representatives...";
-    ReduceRepFun(~Funs[i],myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
-    printf "done\t Number of functions %o\n",#Funs[i];
     printf "reducing functions...";
     ReduceFun(~Funs[i]:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
     printf "done\t Number of functions %o\n",#Funs[i];
     printf "splitting functions...";
     SplitFun(~Funs[i],~NucleiFun:OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
     printf "done\t Number of functions %o\n",#Funs[i];
-    printf "computing new nuclei...";
     for f in Funs[i] do
       if not IsDefined(NucleiFun,f) then
         NucleiFun[f]:=getNuclei(f,One(F));
       end if;
     end for;
-    printf "done\n";
     printf "reducing functions with respect to my representatives...";
     ReduceRepFun(~Funs[i],myRep:NucleiFun:=NucleiFun,OrbitsFun:=OrbitsFun,AutomorphismsFun:=AutomorphismsFun);
     printf "done\t Number of functions %o\n",#Funs[i];
