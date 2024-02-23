@@ -221,11 +221,11 @@ ClassifyFun:=procedure(n)
     end if; 
   end for;
   printf "done\n";
-  Funs:=[fun(R): fun in [getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
+  Funs:=[fun(R): fun in [getCHK,getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
   Funs:=[[ReducePolyForm(f): f in Fun]: Fun in Funs];
-  StrFam:=["G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
+  StrFam:=["CHK","G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
   printf "\n\nNumber of functions %o\n",#(&cat(Funs));
-  for i:=2 to #Funs do
+  for i:=1 to #Funs do
     printf "\n\n\n---------\nFamily %o\n\n",StrFam[i];
     printf "removing monomials...";
     RemovePower(~Funs[i]);
@@ -265,4 +265,4 @@ ClassifyFun:=procedure(n)
   end for;
 end procedure;
 
-ClassifyFun(6);
+ClassifyFun(8);
