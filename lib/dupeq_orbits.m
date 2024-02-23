@@ -580,7 +580,7 @@ function dupeq(f,g:monomial := false)
 	gTT := AssociativeArray();
 	finvTT := AssociativeArray();
 	ginvTT := AssociativeArray();
-	for x in FF do
+	for x in F do
 		fy := Evaluate(f,x);
 		gy := Evaluate(g,x);
 		fTT[x] := fy;
