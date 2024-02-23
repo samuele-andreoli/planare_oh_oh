@@ -10,6 +10,10 @@ SEARCH_CASES=(
         "N=8;M=1;L=6;"
         "N=8;M=1;L=7;"
         "N=8;M=1;L=8;"
+        "N=6;M=2;L=3;"
+        "N=6;M=2;L=4;"
+        "N=6;M=2;L=5;"
+        "N=6;M=2;L=6;"
 )
 
 for SEARCH_CASE in ${SEARCH_CASES[@]}
