@@ -1,4 +1,4 @@
-load "lib/dupeq.m";
+load "lib/dupeq_orbits.m";
 load "lib/semifields.m";
 load "lib/planar.m";
 load "lib/FamiliesPlanar.m";
