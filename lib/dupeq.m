@@ -443,7 +443,7 @@ function trivialPartition(f)
 
 	while #elements gt 0 do
 		x := Rep(elements);
-		orbit := {c*x^(3^(d*i)) : c in {1,2}, i in [0..m-1]};
+		orbit := {c*x^(p^(d*i)) : c in GF(p), i in [0..m-1]|not IsZero(c)};
 
 		elements diff:= orbit;
 		Include(~orbits, orbit);
