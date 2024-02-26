@@ -255,7 +255,10 @@ getG:=function(R)
 end function;
 
 getACW:=function(R)
-  if not BaseRing(R) eq GF(3^5) then
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+  if not [p,n] eq [3,5] then
     return [];
   end if;
   x:=R.1;
