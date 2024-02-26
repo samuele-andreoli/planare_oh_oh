@@ -318,3 +318,48 @@ getAllDOPlanar:=function(R)
   return &cat[fun(R): fun in [getACW,getCK,getCHK,getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
 end function;
 
+getMyFam:=function(R)
+  x:=R.1;
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+  if IsOdd(n) then
+    return [];
+  end if;
+  m:=n div 2;
+  if not (IsEven(m) or IsOne(p mod 4)) then
+    return [];
+  end if;
+  q:=p^m;
+  Fam:=[];
+  for s:=1 to (m-1) do
+    if GCD(s,m) eq GCD(s,n) then
+      r:=p^s;
+      Append(~Fam,x^2-x^(2*r)+x^(q+1)+x^((q+1)*r));
+      Append(~Fam,x^2-x^(2*r)-x^(q+1)-x^((q+1)*r));
+    end if;
+  end for;
+  return Fam;
+end function;
+
+getMyFamS:=function(R,s)
+  x:=R.1;
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+  if IsOdd(n) then
+    return [];
+  end if;
+  m:=n div 2;
+  if not (IsEven(m) or IsOne(p mod 4)) or not (GCD(s,m) eq GCD(s,n)) then
+    return [];
+  end if;
+  q:=p^m;
+  Fam:=[];
+  r:=p^s;
+  Append(~Fam,x^2-x^(2*r)+x^(q+1)+x^((q+1)*r));
+  Append(~Fam,x^2-x^(2*r)-x^(q+1)-x^((q+1)*r));
+  return Fam;
+end function;
+
+
