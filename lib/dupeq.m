@@ -199,8 +199,7 @@ function process(f, g, finv, ginv, L1, L2, P, monomial)
 	*/
 
 	if #P ne 0 then
-		pair := Rep(P);
-		Exclude(~P, pair);
+		pair := ExtractRep(P);
 
 		x := pair[1];
 		y := pair[2];
@@ -292,8 +291,7 @@ function process_fix_l2(f, g, finv, ginv, L1, L2, P, fixX, fixY)
 	*/
 
 	if #P ne 0 then
-		pair := Rep(P);
-		Exclude(~P, pair);
+		pair := ExtractRep(P);
 
 		x := pair[1];
 		y := pair[2];
@@ -332,6 +330,7 @@ function process_fix_l2(f, g, finv, ginv, L1, L2, P, fixX, fixY)
 
 	/* Get the first free element of L2 (whose value we will guess) */
 	if #L2 eq 1 then
+		// Make sure we start from the fixX and later set the image to fixY
 		b := fixX;
 	else
 		b := firstFree(L2);

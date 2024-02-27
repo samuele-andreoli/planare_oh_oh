@@ -173,7 +173,7 @@ elif n eq 6 then
     interesting_r := [
         x^270 + 2*x^244 + a^449*x^162 + a^449*x^84 + a^534*x^54 + 2*x^36 + a^534*x^28 + x^10 + a^449*x^6 + a^279*x^2,
         x^486 + x^252 + a^561*x^162 + a^561*x^84 + a^183*x^54 + a^183*x^28 + x^18 + a^561*x^6 + a^209*x^2
-    ]
+    ];
 end if;
 
 for k->v in equivalence_classes do
