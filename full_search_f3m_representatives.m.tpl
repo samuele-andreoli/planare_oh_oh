@@ -44,11 +44,6 @@ end for;
 CoeffSpace := CartesianPower(S, l);
 ExpSpace   := {s : s in Subsets(E,l) | #{cosets[e] : e in s} gt 1};
 
-
-// Cyclotomic coset of the monomial used for expansion.
-// If all chosen coefficients lie in it, then the generated
-// polynomial is equivalent to a monomial.
-
 generatedPlanarFunctions := [];
 
 expansion_filename := Sprintf("expansions/%o", filename);
@@ -144,7 +139,7 @@ for k->v in to_test_for_equivalence do
             orbits := orbitsTable[r];
             inequiv := {f : f in inequiv | not dupeq_with_l2_representatives(r,f,orbits)};
         else
-            // If we do not have he orbit there is a reson :)
+            // Leave this for sanity, but now all should have orbits
             inequiv := {f : f in inequiv | not dupeq(r,f)};
         end if;
 
@@ -172,13 +167,13 @@ PrintFile(inequivalent_filename, "equivalence_classes := AssociativeArray();\n")
 if n eq 8 then
     interesting_r := [
         a^3608*x^1458 + a^3608*x^738 + a^3810*x^486 + a^3810*x^246 + a^3413*x^162 + a^3413*x^82 + a^3608*x^18 + a^3810*x^6 + a^2565*x^2,
-        a^164*x^1458 + a^164*x^738 + a^950*x^486 + a^950*x^246 + a^616*x^162 + a^616*x^82 + a^164*x^18 + a^950*x^6 + a^6297*x^2,
+        a^164*x^1458 + a^164*x^738 + a^950*x^486 + a^950*x^246 + a^616*x^162 + a^616*x^82 + a^164*x^18 + a^950*x^6 + a^6297*x^2
     ];
 elif n eq 6 then
     interesting_r := [
         x^270 + 2*x^244 + a^449*x^162 + a^449*x^84 + a^534*x^54 + 2*x^36 + a^534*x^28 + x^10 + a^449*x^6 + a^279*x^2,
         x^486 + x^252 + a^561*x^162 + a^561*x^84 + a^183*x^54 + a^183*x^28 + x^18 + a^561*x^6 + a^209*x^2
-    ]
+    ];
 end if;
 
 for k->v in equivalence_classes do
