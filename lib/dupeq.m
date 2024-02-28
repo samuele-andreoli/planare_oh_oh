@@ -199,7 +199,7 @@ function process(f, g, finv, ginv, L1, L2, P, monomial)
 	*/
 
 	if #P ne 0 then
-		pair := ExtractRep(P);
+		ExtractRep(~P, ~pair);
 
 		x := pair[1];
 		y := pair[2];
@@ -291,7 +291,7 @@ function process_fix_l2(f, g, finv, ginv, L1, L2, P, fixX, fixY)
 	*/
 
 	if #P ne 0 then
-		pair := ExtractRep(P);
+		ExtractRep(~P, ~pair);
 
 		x := pair[1];
 		y := pair[2];
@@ -384,7 +384,7 @@ function dupeq_fixed_l1(fTT,finvTT,gTT,ginvTT,fixX,fixY)
 
 	L2[Zero(F)] := Zero(F);
 
-	success, L1, L2 :=  process(fTT,gTT,finvTT,ginvTT,L1,L2,[]);
+	success, L1, L2 :=  process(fTT,gTT,finvTT,ginvTT,L1,L2,{});
 	if success then
 		for x in F do
 			assert L1[fTT[L2[x]]] eq gTT[x];
@@ -408,7 +408,7 @@ function dupeq_fixed_l2(fTT,finvTT,gTT,ginvTT,fixX,fixY)
 	L1[Zero(F)] := Zero(F);
 	L2[Zero(F)] := Zero(F);
 
-	success, L1, L2 := process_fix_l2(fTT,gTT,finvTT,ginvTT,L1,L2,[],fixX,fixY);
+	success, L1, L2 := process_fix_l2(fTT,gTT,finvTT,ginvTT,L1,L2,{},fixX,fixY);
 	if success then
 		for x in F do
 			assert L1[fTT[L2[x]]] eq gTT[x];
@@ -520,7 +520,6 @@ partitionByL2 := function(f)
 	end for;
 
 	while #raw_orbits gt 0 do
-		#raw_orbits;
 		e := raw_orbits[1][1];
 
 		target_index := 2;

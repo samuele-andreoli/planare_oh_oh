@@ -3,7 +3,7 @@ load "lib/dupeq.m";
 
 /* Search parameters. Modify here */
 
-p := 3;
+p := @P@;
 n := @N@;
 
 l := @L@;
@@ -24,9 +24,7 @@ R<x> := PolynomialRing(F);
 FFs:=getFFs(F);
 
 S := {x : x in GF(p^m) | not IsZero(x)};
-
-// DO poly exponents not in the cyclotomic coset of 2. The check i gt j is redundant since we use a set,
-// but might as well have it explicit.
+CoeffSpace := CartesianPower(S, l);
 
 E := {};
 cosets := AssociativeArray();
@@ -41,7 +39,6 @@ for i in [0..n-1] do
     end for;
 end for;
 
-CoeffSpace := CartesianPower(S, l);
 ExpSpace   := {s : s in Subsets(E,l) | #{cosets[e] : e in s} gt 1};
 
 generatedPlanarFunctions := [];
@@ -130,6 +127,8 @@ inequivalent_functions := AssociativeArray();
 equivalence_classes := AssociativeArray();
 for k->v in to_test_for_equivalence do
     // We have made sure they are in invariant table
+    // and that the easier the (in)equivalence check, the earlier we process them
+    // so we expect to get rid of most ones before getting to the hard equivalence tests.
     representatives := invariantTable[k];
 
     vs := {vi : vi in v};
@@ -163,18 +162,6 @@ for k->v in inequivalent_functions do
 end for;
 
 PrintFile(inequivalent_filename, "equivalence_classes := AssociativeArray();\n");
-
-if n eq 8 then
-    interesting_r := [
-        a^3608*x^1458 + a^3608*x^738 + a^3810*x^486 + a^3810*x^246 + a^3413*x^162 + a^3413*x^82 + a^3608*x^18 + a^3810*x^6 + a^2565*x^2,
-        a^164*x^1458 + a^164*x^738 + a^950*x^486 + a^950*x^246 + a^616*x^162 + a^616*x^82 + a^164*x^18 + a^950*x^6 + a^6297*x^2
-    ];
-elif n eq 6 then
-    interesting_r := [
-        x^270 + 2*x^244 + a^449*x^162 + a^449*x^84 + a^534*x^54 + 2*x^36 + a^534*x^28 + x^10 + a^449*x^6 + a^279*x^2,
-        x^486 + x^252 + a^561*x^162 + a^561*x^84 + a^183*x^54 + a^183*x^28 + x^18 + a^561*x^6 + a^209*x^2
-    ];
-end if;
 
 for k->v in equivalence_classes do
     if not k in interesting_r then
