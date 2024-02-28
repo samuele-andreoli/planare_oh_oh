@@ -7,7 +7,7 @@ load "lib/planar.m";
 
 /* Expansion search parameters. Modify here */
 
-p := 3;
+p := @P@;
 n := @N@;
 
 // Dimension of the subfield for the coefficients
@@ -44,7 +44,7 @@ ExpSpace   := Subsets(E, l);
 // Cyclotomic coset of the monomial used for expansion.
 // If all chosen coefficients lie in it, then the generated
 // polynomial is equivalent to a monomial.
-cyclotomic_coset := {f * 3^i : i in [0,n-1]};
+cyclotomic_coset := {f * p^i : i in [0,n-1]};
 
 generatedPlanarFunctions := [];
 
