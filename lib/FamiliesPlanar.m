@@ -351,10 +351,10 @@ getGK:=function(R)
     return [];
   end if;
   GK:=[];
+  m:=n div 2;
   ns:={a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)};
   PowP:={b^(p^m+1): b in GF(p^m)};
   candB:={b: b in GF(p^m)|not b in PowP};
-  m:=n div 2;
   l:= m div 2;
   for k:=1 to m do
     if IsOdd(m div GCD(k,m)) then
