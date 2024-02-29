@@ -369,7 +369,7 @@ getGK:=function(R)
 end function;
 
 getAllDOPlanar:=function(R)
-  return &cat[fun(R): fun in [getACW,getCK,getCHK,getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
+  return &cat[fun(R): fun in [getA,getACW,getB,getBH,getCG,getCHK,getCK,getCMDY,getCMH, getD,getFF,getG,getGK,getPW,getZKW,getZP]];
 end function;
 
 getMyFam:=function(R)
