@@ -25,7 +25,7 @@ getCMDY:=function(R)
   return [x^10+x^6-x^2,x^10-x^6-x^2];
 end function;
 
-getCMH:=function(R)
+getCM:=function(R)
   x:=R.1;
   F:=BaseRing(R);
   n:=Degree(F);
@@ -369,7 +369,7 @@ getGK:=function(R)
 end function;
 
 getAllDOPlanar:=function(R)
-  return &cat[fun(R): fun in [getA,getACW,getB,getBH,getCG,getCHK,getCK,getCMDY,getCMH, getD,getFF,getG,getGK,getPW,getZKW,getZP]];
+  return &cat[fun(R): fun in [getA,getACW,getB,getBH,getCG,getCHK,getCK,getCMDY,getCM, getD,getFF,getG,getGK,getPW,getZKW,getZP]];
 end function;
 
 getMyFam:=function(R)
