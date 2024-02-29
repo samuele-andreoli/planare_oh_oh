@@ -1,6 +1,15 @@
 //Semifields are AssociativeArrays
 //Functions are polynomials
 
+pickNonSquare:=function(F)
+  for a in F do
+    if not IsZero(a) and not IsSquare(a) then
+      return a;
+    end if;
+  end for;
+  error "";
+end function;
+
 getFF:=function(R)
   x:=R.1;
   return [x^2];
@@ -181,7 +190,7 @@ getD:=function(R)
   end if;
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
-  ns:=Rep({a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)});
+  ns:=pickNonSquare(GF(p^m));
   Op:=y^2;
   Op2:=Zero(RR);
   cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))] cat [0];
@@ -200,7 +209,7 @@ getCG:=function(R)
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
   Op:=y^2;
-  ns:=Rep({a:a in GF(p^m)|not IsZero(a) and not IsSquare(a)});
+  ns:=pickNonSquare(GF(p^m));
   return [getFunFromSpecialSemifield(R,Op,ns*y+ ns^3 *y^9 ,ns*y^3 )];
 end function;
 
@@ -215,7 +224,7 @@ getZP:=function(R)
   RR<y>:=PolynomialRing(GF(p^m));
   Op2:=Zero(RR);
   ZP:=[];
-  ns:=Rep({a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)});
+  ns:=pickNonSquare(GF(p^m));
   cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))] cat [0];
   for k:=1 to m do
     if IsOdd(m div GCD(m,k)) then
