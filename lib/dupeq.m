@@ -147,7 +147,7 @@ function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
 					if IsDefined(L2, newX) then
 						if L2[newX] ne newY then
 							/* This has been confirmed to cut off unnecessary branches */
-							return false, [], [], [], [];
+							return false, [], [], [];
 						end if;
 					else
 						L2[newX] := newY;
@@ -164,7 +164,7 @@ function derivel2(f,g,finv,ginv,L1,L2,P,newValues)
 						if IsDefined(L1,newL1x) then
 							if L1[newL1x] ne newL1y then
 								/* This has been confirmed to cut off unnecessary branches */
-								return false, [], [], [], [];
+								return false, [], [], [];
 							end if;
 						else
 							L1[newL1x] := newL1y;
@@ -597,7 +597,7 @@ function dupeq(f,g:monomial := false)
 	L1[Zero(F)] := Zero(F);
 	L2[Zero(F)] := Zero(F);
 
-	success, l1, l2 := process(fTT,gTT,finvTT,ginvTT,L1,L2,[],monomial);
+	success, l1, l2 := process(fTT,gTT,finvTT,ginvTT,L1,L2,{},monomial);
 	if success then
 		for x in F do
 			assert l1[fTT[l2[x]]] eq gTT[x];
