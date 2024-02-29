@@ -254,6 +254,31 @@ getG:=function(R)
   return [R!Interpolation([a: a in GF(p^(2*m))],Out)];
 end function;
 
+
+getPW:=function(R)
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+  if [p,n] ne [3,10] then
+    return [];
+  end if;
+  m:=n div 2;
+  Out:=[];
+  for a in GF(p^(2*m)) do
+          s:=Eltseq(a);
+          s1:=s[1..m];
+          s2:=s[(m+1)..2*m];
+          a1:=Seqelt(s1,GF(p^m));
+          a2:=Seqelt(s2,GF(p^m));
+          b1:=(a1^2+a2^2)^9;
+          b2:=2*a1*a2+a2^(2*27);
+          t1:=Eltseq(b1);
+          t2:=Eltseq(b2);
+          Append(~Out,Seqelt(t1 cat t2,GF(p^(2*m))));
+  end for;
+  return [R!Interpolation([a: a in GF(p^(2*m))],Out)];
+end function;
+
 getACW:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
@@ -316,6 +341,32 @@ getCK:=function(R)
   return [f];
 end function;
 
+
+//TO FIND some reduction of functions
+getGK:=function(R)
+  F<u>:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+  if not IsZero(n mod 4) and not Log(2,n) in Integers() then
+    return [];
+  end if;
+  GK:=[];
+  ns:={a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)};
+  PowP:={b^(p^m+1): b in GF(p^m)};
+  candB:={b: b in GF(p^m)|not b in PowP};
+  m:=n div 2;
+  l:= m div 2;
+  for k:=1 to m do
+    if IsOdd(m div GCD(k,m)) then
+      for a in ns do
+        for b in candB do
+          Append(~GK,Interpolation([x+u*y:x,y in GF(p^m)],[(x^(p^k+1)+a*y^(p^k+1) )+u*( x^(p^(k+l))*y+b*a^(-1)*y^(p^(k+l))*x ):x,y in GF(p^m)]));
+        end for;
+      end for;
+    end if;
+  end for;
+  return GK;
+end function;
 
 getAllDOPlanar:=function(R)
   return &cat[fun(R): fun in [getACW,getCK,getCHK,getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
