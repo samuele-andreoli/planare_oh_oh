@@ -606,3 +606,196 @@ function dupeq(f,g:monomial := false)
 
 	return success, l1, l2;
 end function;
+
+getFFs:=function(F)
+	FFs:=[a: a in F|not IsZero(a)];
+	for i:=1 to ((#F-1) div 2) do
+  		Remove(~FFs,Index(FFs,-FFs[i]));
+	end for;
+ 
+	return FFs;
+end function;
+
+get_tt := function(f, FFs)
+	F := BaseRing(Parent(f));
+
+	fTT := AssociativeArray();
+	fTT[Zero(F)] := Zero(F);
+
+	for x in FFs do
+		fy := Evaluate(f,x);
+
+		fTT[x] := fy;
+		fTT[-x] := fy;
+	end for;
+
+	return fTT;
+end function;
+
+get_tt_with_inv := function(f, FFs)
+	F := BaseRing(Parent(f));
+
+	fTT := AssociativeArray();
+	invfTT := AssociativeArray();
+	fTT[Zero(F)] := Zero(F);
+	invfTT[Zero(F)] := Zero(F);
+
+	for x in FFs do
+		fy := Evaluate(f,x);
+
+		fTT[x] := fy;
+		fTT[-x] := fy;
+		invfTT[fy] := Min({x,-x});
+	end for;
+
+	return fTT, invfTT;
+end function;
+
+function dupeq_tt(f,finv,g,ginv:monomial:=false)
+	F := Universe(f);
+	
+	L1 := AssociativeArray();
+	L2 := AssociativeArray();
+	L1[Zero(F)] := Zero(F);
+	L2[Zero(F)] := Zero(F);
+
+	success, l1, l2 := process(f,g,finv,ginv,L1,L2,{},monomial);
+	if success then
+		for x in F do
+			assert l1[f[l2[x]]] eq g[x];
+		end for;
+	end if;
+
+	return success, l1, l2;
+end function;
+
+function dupeq_with_l2_representatives_tt(fTT, finvTT, gTT, ginvTT, f_representatives)
+	F := Universe(fTT);
+
+	/* Attempt to assign L2(1) = r for each representative and see if something works */
+	for r in f_representatives do
+		success, l1, l2 := dupeq_fixed_l2(fTT,finvTT,gTT,ginvTT,One(F),r);
+		if success then
+			for x in F do
+				assert l1[fTT[l2[x]]] eq gTT[x];
+			end for;
+
+			return success, l1, l2;
+		end if;
+	end for;
+
+	return false, [], [];
+end function;
+
+verifyL2Guess := function(f, finv, g, ginv, L2)
+	F := Universe(f);
+	pf := {x : x in PrimeField(F) | not IsZero(x)};
+
+	L1 := AssociativeArray();
+	L1[Zero(F)] := Zero(F);
+
+	newValues := {};
+
+	for x in F do
+		newX := f[L2[x]];
+		newY := g[x];
+
+		if IsDefined(L1, newX) then
+			if not L1[newX] eq newY then
+				return false, [];
+			end if;
+		else
+			L1[newX] := newY;
+			Include(~newValues, newX);
+		end if;
+	end for;
+
+	for v in newValues do
+		if #L1 eq #F then
+			for x in F do
+				if g[x] ne L1[f[L2[x]]] then
+					return false, [];
+				end if;
+			end for;
+
+			return true, L1;
+		end if;
+
+		for c2 in pf do
+			newX2 := c2*v;
+			newY2 := c2*L1[v];
+
+			for x->l1x in L1 do
+				for c1 in pf do
+					newX := newX2 + c1 * x;
+					newY := newY2 + c1 * l1x;
+
+					if IsDefined(L1,newX) then
+						if L1[newX] ne newY then
+							return false, [];
+						end if;
+					else
+						L1[newX] := newY;
+
+						/* Since we have l1(f(l2(x))) = g(x), and we know L1[newX], we can obtain
+						 * a contradiction in several ways:
+						 * - if newX is in the image of f, but newY is not in the image of g;
+						 * - if newX is not in the image of f, but newY is in the image of g
+						 * - if L2[newX] or L2[-newX] is already defined, but the value is
+						 *   not one of newY or -newY
+						 */
+						if IsDefined(finv, newX) then
+							if not IsDefined(ginv,newY) then
+								return false, [];
+							end if;
+
+							L2x := ginv[newY];
+							L2y := finv[newX];
+
+							if not {L2[L2x], L2[-L2x]} eq {L2y, -L2y} then
+								return false, [];
+							end if;
+						else
+							if IsDefined(ginv,newY) then
+								/* This has been confirmed to cut off unnecessary branches */
+								return false, [];
+							end if;
+						end if;
+					end if;
+				end for;
+			end for;
+		end for;
+	end for;
+
+	assert #L1 eq #F;
+
+	return true, L1;
+end function;
+
+partitionByL2tt := function(fTT, finvTT, tp)
+	F := Universe(fTT);
+
+	raw_orbits := [[o : o in orbit] : orbit in tp];
+
+	orbits := [];
+
+	while #raw_orbits gt 0 do
+		e := raw_orbits[1][1];
+
+		target_index := 2;
+		while target_index le #raw_orbits do
+			success, l1, l2 := dupeq_fixed_l2(fTT, finvTT, fTT, finvTT, e, raw_orbits[target_index][1]);
+			target_index +:= 1;
+
+			if success then
+				raw_orbits, target_index := closeOrbitsByL2(raw_orbits, l2, target_index);
+			end if;
+		end while;
+
+		// We checked that raw_orbits[1] does not map to anything else.
+		Append(~orbits, raw_orbits[1]);
+		raw_orbits := raw_orbits[2..#raw_orbits];
+	end while;
+
+	return {{e : e in orbit} : orbit in orbits};
+end function;
