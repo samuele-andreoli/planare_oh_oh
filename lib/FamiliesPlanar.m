@@ -130,26 +130,23 @@ getBH:=function(R)
   end if;
   m:=n div 2;
   BH:=[];
-  O:={o: o in F|not IsZero(o) and IsZero(o^(p^m)+o)};
-  o:=Rep(O);
-  ConditionBH:=function(s)
-    for a in O do
-      if IsZero(a^(p^s)+a) then
-        return false;
-      end if;
-    end for;
-    return true;
+  vDyadic:=function(s)
+    if IsZero(s) then 
+      return 1;
+    else
+      v:=0;
+      while IsEven(s div 2^v) do
+        v +:=1;
+      end while;
+      return v;
+    end if;
   end function;
-  for s:=1 to m do
-    if ConditionBH(s) then
-      orderB:=(p^m+1) div GCD(p^m+1,p^s+1);
-      for b in F do
-        if not IsZero(b) and not (IsDivisibleBy(orderB,Order(b^(p^m-1)))) then
-          g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
-          Append(~BH,x^(p^m+1)+o*g);
-          break;
-        end if;
-      end for;
+  b:=pickNonSquare(F);
+  o:=F.1;
+  for s:=0 to (m-1) do
+    if IsZero(s) or not vDyadic(m) eq vDyadic(s) then
+      g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
+      Append(~BH,x^(p^m+1)+o*g);
     end if;
   end for;
   return BH;
