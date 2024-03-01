@@ -131,19 +131,15 @@ getBH:=function(R)
   m:=n div 2;
   BH:=[];
   vDyadic:=function(s)
-    if IsZero(s) then 
-      return 1;
-    else
-      v:=0;
-      while IsEven(s div 2^v) do
-        v +:=1;
-      end while;
-      return v;
-    end if;
+    v:=0;
+    while IsEven(s div 2^v) do
+      v +:=1;
+    end while;
+    return v;
   end function;
   b:=pickNonSquare(F);
   o:=F.1;
-  for s:=0 to (m-1) do
+  for s:=1 to (n-1) do
     if IsZero(s) or not vDyadic(m) eq vDyadic(s) then
       g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
       Append(~BH,x^(p^m+1)+o*g);
