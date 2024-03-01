@@ -186,7 +186,7 @@ getD:=function(R)
   ns:=pickNonSquare(GF(p^m));
   Op:=y^2;
   Op2:=Zero(RR);
-  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))] cat [0];
+  cop:=[i: i in [1..(m div 2)]|IsOne(GCD(i,m))];
   return [getFunFromSpecialSemifield(R,Op,ns*y^(p^i) ,Op2): i in cop];
 end function;
 
