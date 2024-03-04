@@ -186,7 +186,7 @@ getD:=function(R)
   ns:=pickNonSquare(GF(p^m));
   Op:=y^2;
   Op2:=Zero(RR);
-  cop:=[i: i in [1..(m div 2)]|IsOne(GCD(i,m))];
+  cop:=[i: i in [1..(m div 2)]];
   return [getFunFromSpecialSemifield(R,Op,ns*y^(p^i) ,Op2): i in cop];
 end function;
 
@@ -218,13 +218,15 @@ getZP:=function(R)
   Op2:=Zero(RR);
   ZP:=[];
   ns:=pickNonSquare(GF(p^m));
-  cop:=[i: i in [1..(m-1)]|IsOne(GCD(i,m))] cat [0];
-  for k:=1 to m do
+  cop:=[i: i in [1..(m div 2)]] cat [0];
+  for k:=0 to (m div 2) do
     if IsOdd(m div GCD(m,k)) then
       Op:=2*y^(p^k+1);
-      for i in cop do
-        Op1:=ns*y^(p^i);
-        Append(~ZP,getFunFromSpecialSemifield(R,Op,Op1,Op2));
+      for i:=0 to (m div 2) do
+        if not [i,k] eq [0,0] then
+          Op1:=ns*y^(p^i);
+          Append(~ZP,getFunFromSpecialSemifield(R,Op,Op1,Op2));
+        end if;
       end for;
     end if;
   end for;
