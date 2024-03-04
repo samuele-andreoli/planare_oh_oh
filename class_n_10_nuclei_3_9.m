@@ -1,4 +1,4 @@
-BH_i := 1; // to 4;
+BH_i := 1; // to 2;
 
 load "lib/FamiliesPlanar.m";
 load "lib/dupeq.m";
@@ -83,9 +83,27 @@ BH := [
 FFs := getFFs(F);
 fTT, invfTT := get_tt_with_inv(BH[BH_i], FFs);
 
-tp := trivialPartition(BH[BH_i]);
-orbits := partitionByL2tt(fTT, invfTT, tp);
-{* #o : o in orbits*};
-orbit_rep := {Min(o) : o in orbits};
-orbit_rep;
+/* To compute orbits. Then use precomputed */
+// tp := trivialPartition(BH[BH_i]);
+// orbits := partitionByL2tt(fTT, invfTT, tp);
+// {* #o : o in orbits*};
+// orbit_rep := {Min(o) : o in orbits};
+// orbit_rep;
 
+
+
+// Both have same orbits with the following multiset and representatives.
+// {* 968, 4840^^12 *}
+orbit_rep := { u^17, One(F), u, u^2, u^3, u^4, u^5, u^6, u^8, u^10, u^11, u^12, u^13 };
+
+for z in getZP_cop0 do
+    gTT, invgTT := get_tt_with_inv(z, FFs);
+
+    s, l1, l2 := dupeq_with_l2_representatives_tt(fTT, invfTT, gTT, invgTT, orbits_rep);
+    z;
+    s;
+    if s then
+        Interpolation([u : u in F], [l1[u] : u in F]);
+        Interpolation([u : u in F], [l2[u] : u in F]);
+    end if;
+end for;

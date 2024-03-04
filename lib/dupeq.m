@@ -514,8 +514,13 @@ partitionByL2 := function(f)
 	finvTT := AssociativeArray();
 
 	for x in F do
+		if IsDefined(fTT, -x) then
+			continue;
+		end if;
+
 		fy := Evaluate(f,x);
 		fTT[x] := fy;
+		fTT[-x] := fy;
 		finvTT[fy] := Min({x,-x});
 	end for;
 
@@ -549,10 +554,16 @@ function dupeq_with_l2_representatives(f, g, f_representatives)
 	finvTT := AssociativeArray();
 	ginvTT := AssociativeArray();
 	for x in F do
+		if IsDefined(fTT, -x) then
+			continue;
+		end if;
+
 		fy := Evaluate(f,x);
 		gy := Evaluate(g,x);
 		fTT[x] := fy;
+		fTT[-x] := fy;
 		gTT[x] := gy;
+		gTT[-x] := gy;
 		finvTT[fy] := Min({x,-x});
 		ginvTT[gy] := Min({x,-x});
 	end for;
@@ -584,10 +595,16 @@ function dupeq(f,g:monomial := false)
 	finvTT := AssociativeArray();
 	ginvTT := AssociativeArray();
 	for x in F do
+		if IsDefined(fTT, -x) then
+			continue;
+		end if;
+
 		fy := Evaluate(f,x);
 		gy := Evaluate(g,x);
 		fTT[x] := fy;
+		fTT[-x] := fy;
 		gTT[x] := gy;
+		gTT[-x] := gy;
 		finvTT[fy] := Min({x,-x});
 		ginvTT[gy] := Min({x,-x});
 	end for;
