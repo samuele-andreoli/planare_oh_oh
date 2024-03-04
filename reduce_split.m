@@ -221,9 +221,9 @@ ClassifyFun:=procedure(n)
     end if; 
   end for;
   printf "done\n";
-  Funs:=[fun(R): fun in [getCHK,getG,getZP,getCG,getD,getBH,getB,getZKW,getCMDY,getA,getFF]];
+  Funs:=[fun(R): fun in [getA,getACW,getB,getBH,getCG,getCHK,getCK,getCMDY,getCM, getD,getFF,getG,getGK,getPW,getZKW,getZP]];
   Funs:=[[ReducePolyForm(f): f in Fun]: Fun in Funs];
-  StrFam:=["CHK","G","ZP","CG","D","BH","B","ZKW","CMDY","A","FF"];
+  StrFam:=["A", "ACW", "B", "BH", "CG", "CHK", "CK", "CMDY", "CM, "D", "FF", "G", "GK", "PW", "ZKW", "ZP"];
   printf "\n\nNumber of functions %o\n",#(&cat(Funs));
   for i:=1 to #Funs do
     printf "\n\n\n---------\nFamily %o\n\n",StrFam[i];
