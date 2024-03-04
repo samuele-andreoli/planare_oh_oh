@@ -18,9 +18,9 @@ getRepresentatives:=function(n)
             x^2,
             x^4,
             x^10,
+            x^14,
             x^10 + x^6 + 2*x^2,
             x^10 + 2*x^6 + 2*x^2,
-            x^14,
             x^90 + x^2,
             x^162 + x^108 +2*x^84 + x^2
         ];
@@ -28,6 +28,7 @@ getRepresentatives:=function(n)
         return [
             x^2,
             x^10,
+            x^14,
             x^122,
             2*x^270 + 2*x^244 + x^54 + x^36 + x^10 + x^2,
             a^455*x^270 + x^28 + a^273*x^10,
@@ -49,10 +50,10 @@ getRepresentatives:=function(n)
             x^4,
             x^10,
             x^28,
+            x^14,
+            x^122,
             x^10 +x^6+2*x^2,
             x^10 +2*x^6+2*x^2,
-            x^14,
-            x^122
         ];
     elif n eq 8 then
         return [
