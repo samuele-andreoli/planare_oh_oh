@@ -351,7 +351,9 @@ getGK:=function(R)
   F<u>:=BaseRing(R);
   p:=Characteristic(F);
   n:=Degree(F);
-  if not IsZero(n mod 4) and not Log(2,n) in Integers() then
+  if not IsZero(n mod 4) then 
+    return [];
+  elif Log(2,(n div 4)) in Integers() then
     return [];
   end if;
   GK:=[];
