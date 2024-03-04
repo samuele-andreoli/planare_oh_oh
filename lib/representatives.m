@@ -53,7 +53,7 @@ getRepresentatives:=function(n)
             x^14,
             x^122,
             x^10 +x^6+2*x^2,
-            x^10 +2*x^6+2*x^2,
+            x^10 +2*x^6+2*x^2
         ];
     elif n eq 8 then
         return [
