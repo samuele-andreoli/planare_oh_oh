@@ -42,7 +42,7 @@ getCM:=function(R)
   if p ne 3 then
     return [];
   end if;
-  return [x^((3^i+1) div 2): i in [3..n]|IsOne(GCD(n,i))];
+  return [x^((3^i+1) div 2): i in [3..n]|IsOne(GCD(n,i)) and IsOdd(i)];
 end function;
 
 getZKW:=function(R)
