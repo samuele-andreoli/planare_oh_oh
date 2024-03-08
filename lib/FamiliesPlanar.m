@@ -173,6 +173,75 @@ getFunFromSpecialSemifield:=function(R,Op,Op1,Op2)
   return R!Interpolation([a: a in GF(p^(2*m))],Out);
 end function;
 
+getFunFromSpecialSemifieldTT:=function(R,Op,Op1,Op2)
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+
+  m := n div 2;
+
+  Out:=AssociativeArray();
+  Out[Zero(F)] := Zero(F); 
+
+  for a in F do
+      if IsDefined(Out, a) then
+        continue;
+      end if;
+
+      s:=Eltseq(a);
+      s1:=s[1..m];
+      s2:=s[(m+1)..2*m];
+      a1:=Seqelt(s1,GF(p^m));
+      a2:=Seqelt(s2,GF(p^m));
+
+      b1:=Op[a1] + Op1[Op[a2]];
+      b2:=2*a1*a2 + Op2[a2^2];
+
+      t1:=Eltseq(b1);
+      t2:=Eltseq(b2);
+
+      fa := Seqelt(t1 cat t2,F);
+      Out[a] := fa;
+      Out[-a] := fa;
+  end for;
+
+  return Out;
+end function;
+
+getFunFromSpecialSemifieldTT_zero_op2:=function(R,Op,Op1)
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+
+  m := n div 2;
+
+  Out:=AssociativeArray();
+  Out[Zero(F)] := Zero(F); 
+
+  for a in F do
+      if IsDefined(Out, a) then
+        continue;
+      end if;
+
+      s:=Eltseq(a);
+      s1:=s[1..m];
+      s2:=s[(m+1)..2*m];
+      a1:=Seqelt(s1,GF(p^m));
+      a2:=Seqelt(s2,GF(p^m));
+
+      b1:=Op[a1] + Op1[Op[a2]];
+      b2:=2*a1*a2;
+
+      t1:=Eltseq(b1);
+      t2:=Eltseq(b2);
+
+      fa := Seqelt(t1 cat t2,F);
+      Out[a] := fa;
+      Out[-a] := fa;
+  end for;
+
+  return Out;
+end function;
 
 getD:=function(R)
   F:=BaseRing(R);
@@ -190,6 +259,44 @@ getD:=function(R)
   return [getFunFromSpecialSemifield(R,Op,ns*y^(p^i) ,Op2): i in cop];
 end function;
 
+getDTT:=function(R)
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+
+  if not IsDivisibleBy(n,2) then
+    return [];
+  end if;
+
+  m:=n div 2;
+  Fq := GF(p^m);
+
+  OpTT := AssociativeArray();
+  for a in Fq do
+    if IsDefined(OpTT, a) then
+      continue;
+    end if;
+  
+    a2 := a^2;
+    OpTT[a] := a2;
+    OpTT[-a] := a2;
+  end for;
+
+  ns:=pickNonSquare(Fq);
+
+  D := [];
+
+  for i in [1..(m div 2)] do
+    Op1TT := AssociativeArray();
+    for a in Fq do
+      Op1TT[a] := ns*a^(p^i);
+    end for;
+
+    Append(~D, getFunFromSpecialSemifieldTT_zero_op2(R, OpTT, Op1TT));
+  end for;
+
+  return D;
+end function;
 
 //There are 2 up to isotopism
 getCG:=function(R)
@@ -204,6 +311,43 @@ getCG:=function(R)
   Op:=y^2;
   ns:=pickNonSquare(GF(p^m));
   return [getFunFromSpecialSemifield(R,Op,ns*y+ ns^3 *y^9 ,ns*y^3 )];
+end function;
+
+getCGTT:=function(R)
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+
+  if p ne 3 or not IsDivisibleBy(n,2) then
+    return [];
+  end if;
+
+  m:=n div 2;
+  Fq := GF(p^m);
+  
+  // Op is x^2
+  OpTT := AssociativeArray();
+  for a in Fq do
+    if IsDefined(OpTT, a) then
+      continue;
+    end if;
+  
+    a2 := a^2;
+    OpTT[a] := a2;
+    OpTT[-a] := a2;
+  end for;
+
+  ns:=pickNonSquare(Fq);
+  ns3 := ns^3;
+
+  Op1TT := AssociativeArray();
+  Op2TT := AssociativeArray();
+  for a in Fq do
+    Op1TT[a] := ns*a + ns3 * a^9;
+    Op2TT[a] := ns*a^3;
+  end for;
+
+  return [getFunFromSpecialSemifieldTT(R,OpTT,Op1TT,Op2TT)];
 end function;
 
 getZP:=function(R)
@@ -233,6 +377,59 @@ getZP:=function(R)
   return ZP;
 end function;
 
+getZPTT:=function(R)
+  F := BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+
+  if not IsDivisibleBy(n,2) then
+    return [];
+  end if;
+
+  m  :=n div 2;
+  Fq := GF(p^m);
+
+  ZP:=[];
+
+  ns:=pickNonSquare(Fq);
+
+  Op := [];
+  Op1 := [];
+  for k in [0..(m div 2)] do
+    OpTT := AssociativeArray();
+
+    for a in Fq do
+      OpTT[a] := 2*a^(p^k+1);
+    end for;
+
+    Append(~Op, OpTT);
+
+    if IsEven(m div GCD(m,k)) then
+      continue;
+    end if;
+    
+    Op1TT := AssociativeArray();
+    for a in Fq do
+      Op1TT[a] := ns * a^(p^k);
+    end for;
+
+    Append(~Op1, Op1TT);
+  end for;
+
+  skip_first := true;
+  for OpTT in Op do
+    for Op1TT in Op1 do
+      if skip_first then
+        skip_first := false;
+        continue;
+      end if;
+
+      Append(~ZP, getFunFromSpecialSemifieldTT_zero_op2(R, OpTT, Op1TT));
+    end for;
+  end for;
+
+  return ZP;
+end function;
 
 getG:=function(R)
   F:=BaseRing(R);
@@ -258,6 +455,44 @@ getG:=function(R)
   return [R!Interpolation([a: a in GF(p^(2*m))],Out)];
 end function;
 
+getGTT := function(R)
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+
+  if (n lt 6) or p ne 3 or not IsDivisibleBy(n,2) or IsEven(n div 2) then
+    return [];
+  end if;
+
+  m:=n div 2;
+
+  Out := AssociativeArray();
+  Out[Zero(F)] := Zero(F);
+
+  for a in F do
+    if IsDefined(Out, a) then
+      continue;
+    end if;
+  
+    s:=Eltseq(a);
+    s1:=s[1..m];
+    s2:=s[(m+1)..2*m];
+    a1:=Seqelt(s1,GF(p^m));
+    a2:=Seqelt(s2,GF(p^m));
+    
+    b1:=a1^2-2*a2^10;
+    b2:=2*a1*a2+a2^6;
+    
+    t1:=Eltseq(b1);
+    t2:=Eltseq(b2);
+
+    fa := Seqelt(t1 cat t2, F);
+    Out[a] := fa;
+    Out[-a] := fa;
+  end for;
+
+  return [Out];
+end function;
 
 getPW:=function(R)
   F:=BaseRing(R);
@@ -281,6 +516,45 @@ getPW:=function(R)
           Append(~Out,Seqelt(t1 cat t2,GF(p^(2*m))));
   end for;
   return [R!Interpolation([a: a in GF(p^(2*m))],Out)];
+end function;
+
+getPWTT:=function(R)
+  F:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+
+  if [p,n] ne [3,10] then
+    return [];
+  end if;
+
+  m:=n div 2;
+
+  Out := AssociativeArray();
+  Out[Zero(F)] := Zero(F);
+
+  for a in F do
+    if IsDefined(Out, a) then
+      continue;
+    end if;
+
+    s:=Eltseq(a);
+    s1:=s[1..m];
+    s2:=s[(m+1)..2*m];
+  
+    a1:=Seqelt(s1,GF(p^m));
+    a2:=Seqelt(s2,GF(p^m));
+  
+    b1:=(a1^2+a2^2)^9;
+    b2:=2*a1*a2+a2^(2*27);
+    t1:=Eltseq(b1);
+    t2:=Eltseq(b2);
+  
+    fa := Seqelt(t1 cat t2, F);
+    Out[a] := fa;
+    Out[-a] := fa;
+  end for;
+
+  return [Out];
 end function;
 
 getACW:=function(R)
@@ -371,6 +645,70 @@ getGK:=function(R)
       end for;
     end if;
   end for;
+  return GK;
+end function;
+
+getGKTT:=function(R)
+  F<u>:=BaseRing(R);
+  p:=Characteristic(F);
+  n:=Degree(F);
+
+  if not IsZero(n mod 4) and not Log(2,n) in Integers() then
+    return [];
+  end if;
+
+  GK:=[];
+
+  m:=n div 2;
+  l:= m div 2;
+
+  Fq := GF(p^m);
+
+  ns:={a: a in GF(p^m)|not IsZero(a) and not IsSquare(a)};
+
+  PowP:={b^(p^m+1): b in GF(p^m)};
+  candB:={b: b in GF(p^m)|not b in PowP};
+
+
+  for k:=1 to m do
+    if not IsOdd(m div GCD(k,m)) then
+      continue;
+    end if;
+  
+    for a in ns do
+      ainv := a^(-1);
+      for b in candB do
+        bainv := b * ainv;
+
+        Out := AssociativeArray();
+        Out[Zero(F)] := Zero(F);
+        for y in Fq do
+          uy := u*y;
+          if IsDefined(Out, uy) then
+            continue;
+          end if;
+
+          aypk1 := a * y^(p^k+1);
+          ypkl := y^(p^(k+l));
+
+          for x in Fq do  
+            el := x + uy;
+            if IsDefined(Out, el) then
+              continue;
+            end if;
+
+            fel := (x^(p^k+1) + aypk1) + u * (x^(p^(k+l)) * y + bainv * ypkl * x);
+
+            Out[el]  := fel;
+            Out[-el] := fel;
+          end for;
+        end for;
+
+        Append(~GK, Out);
+      end for;
+    end for;
+  end for;
+
   return GK;
 end function;
 

@@ -9,6 +9,7 @@ load "lib/planar.m";
 
 p := @P@;
 n := @N@;
+q := p^n;
 
 // Dimension of the subfield for the coefficients
 m := @M@;
@@ -28,6 +29,8 @@ SetLogFile(Sprintf("logs/%o", filename) : Overwrite := true);
 F<a> := GF(p^n);
 R<x> := PolynomialRing(F);
 
+xf := x^f;
+
 // Precomputation for fast planar functions test
 FFs:=getFFs(F);
 
@@ -37,14 +40,65 @@ S := {x : x in GF(p^m) | not IsZero(x)};
 // but might as well have it explicit.
 E := {p^i + p^j : i,j in [0..n-1] | i ge j};
 Exclude(~E, f);
-
-CoeffSpace := CartesianPower(S, l);
-ExpSpace   := Subsets(E, l);
+ExpSpace := Subsets(E, l);
+IncompleteCoeffSpace := CartesianPower(S, l-1);
 
 // Cyclotomic coset of the monomial used for expansion.
 // If all chosen coefficients lie in it, then the generated
 // polynomial is equivalent to a monomial.
-cyclotomic_coset := {f * p^i : i in [0,n-1]};
+exp_cyclotomic_coset := {f * p^i : i in [0..(n-1)]};
+
+// Cyclotomic + mult. cosets representatives of the elements in Fp^n
+// When guessing the coeff. for a chosen exponent e, it is enough to get it from here
+F_M_e := AssociativeArray();
+F_cosets := AssociativeArray();
+F_cosets[1] := {One(F)};
+
+print "Computing cosets";
+
+for e in E do
+    // Compute M := {a^(f-e) : a in F}
+    d := GCD(q-1, f-e);
+    if IsDefined(F_cosets, d) then
+        continue;
+    end if;        
+
+    if not IsDefined(F_M_e, d) then
+        g := a^d;
+        M := {g^i : i in [1..((q-1) div d)]};
+
+        F_M_e[d] := M;
+    end if;
+
+    M := F_M_e[d];
+
+    // Find cosets using M and then cyclotomic equivalence
+    F_elements := {x : x in F | not IsZero(x)};
+    coset_reps := {};
+
+    while #F_elements gt 0 do
+        c := Rep(F_elements);
+
+        coset := {c * m : m in M};
+        new_values := coset;
+
+        while #new_values gt 0 do
+            ExtractRep(~new_values, ~r);
+            
+            rp := r^p;
+            if not rp in coset then
+                Include(~coset, rp);
+                Include(~new_values, rp);
+            end if;
+        end while;
+
+        Include(~coset_reps, Min(coset));
+        F_elements diff:= coset;
+    end while;
+
+    F_cosets[d] := coset_reps;
+end for;
+
 
 generatedPlanarFunctions := [];
 
@@ -55,21 +109,22 @@ print "Start expansion";
 timeExpansion := Cputime();
 
 for exp in ExpSpace do
-    if exp subset cyclotomic_coset then
+    // First just skip the exponents if this would be equivalent to a monomial
+    if exp subset exp_cyclotomic_coset then
         continue;
     end if;
 
     e := [ei : ei in exp];
 
-    for c in CoeffSpace do
-        candidate := [Zero(F): x in [1..p^n]];
-        candidate[f+1] := One(F);
-        
-        for i in [1..l] do
-            candidate[e[i]+1] := c[i];
-        end for;
+    // Select the first exponent from the correct cyclotomic + multiplicative
+    // cosets representatives for e[1]. The others are all possible l-1 subsets of the coefficients.
+    for coefficients in CartesianProduct(F_cosets[GCD(f-e[1], q-1)], IncompleteCoeffSpace) do
+        candidate := xf;
+        candidate +:= coefficients[1] * x^e[1];
 
-        candidate := R!candidate;
+        for i in [2..l] do
+            candidate +:= (coefficients[2])[i-1] * x^e[i];
+        end for;
 
         if fastIsPlanarDOPoly(candidate,FFs) then
             PrintFile(expansion_filename, Sprintf("%o,", candidate));
@@ -119,15 +174,46 @@ printf "End invariant test %o\n\n", Cputime(timeInvariant);
 equivalence_filename := Sprintf("equivalence_test/%o", filename);
 PrintFile(equivalence_filename, Sprintf("p := %o;\nn := %o;\n\nF<a> := GF(p^n);\nR<x> := PolynomialRing(F);\n\nto_test_for_equivalence := AssociativeArray();", p, n) : Overwrite:= true);
 
+/* Use theoretical results on nuclei to weed out some of the expansions */
+
 x2_key := Sprintf("[ %o, %o ].NA", p^n, p^n);
 // No need to test for equivalence, it's all x^2
 Remove(~to_test_for_equivalence, x2_key);
+
+if n mod 4 eq 0 then
+    // It's all Dickson
+    dickson_key := Sprintf("[ %o, %o ].NA", p^(n div 4), p^(n div 2));
+
+    Remove(~to_test_for_equivalence, dickson_key);
+end if;
+
+if n mod 3 eq 0 then
+    // It's all Albert
+    albert_key := Sprintf("[ %o, %o ]", p^(n div 3), p^(n div 3));
+
+    for k in Keys(to_test_for_equivalence) do
+        if Substring(k, 1, #albert_key) eq albert_key then
+            Remove(~to_test_for_equivalence, k);
+        end if;
+    end for;
+end if;
+
+if n in {4,6,8,10} then
+    // I know that nucleus
+    nuclei_key := Sprintf("[ %o, %o ]", p, p^(n div 2));
+
+    for k in Keys(to_test_for_equivalence) do
+        if Substring(k, 1, #nuclei_key) eq nuclei_key then
+            Remove(~to_test_for_equivalence, k);
+        end if;
+    end for;
+end if;
 
 for k->v in to_test_for_equivalence do
     PrintFile(equivalence_filename, Sprintf("to_test_for_equivalence[\"%o\"] := %o;\n", k, v));
 end for;
 
-// Classification using dupeq
+/* Classification using dupeq */
 orbitsTable := getOrbitsTable(n);
 
 print "Start equivalence test";

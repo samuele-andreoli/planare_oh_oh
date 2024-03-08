@@ -86,6 +86,23 @@ getInvariantTable:=function(n)
         invariantTable["[ 9, 9 ].NA"]:={
             x^10
         };
+    elif n eq 7 then
+        invariantTable["[ 3, 3 ].NA"]:={
+            x^4,
+            x^10 + x^6 + 2*x^2,
+            x^10 + 2*x^6 + 2*x^2,
+            x^28,
+            x^10
+        };
+
+        invariantTable["[ 0, 0 ].NA"]:={
+            x^14,
+            x^122
+        };
+
+        invariantTable["[ 2187, 2187 ].NA"]:={
+            x^2
+        };
     elif n eq 8 then
         invariantTable["[ 6561, 6561 ].NA"]:={
             x^2
