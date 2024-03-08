@@ -633,13 +633,17 @@ getFFs:=function(F)
 	return FFs;
 end function;
 
-get_tt := function(f, FFs)
+get_tt := function(f)
 	F := BaseRing(Parent(f));
 
 	fTT := AssociativeArray();
 	fTT[Zero(F)] := Zero(F);
 
-	for x in FFs do
+	for x in F do
+		if IsDefined(fTT, x) then
+			continue;
+		end if;
+
 		fy := Evaluate(f,x);
 
 		fTT[x] := fy;
@@ -649,7 +653,7 @@ get_tt := function(f, FFs)
 	return fTT;
 end function;
 
-get_tt_with_inv := function(f, FFs)
+get_tt_with_inv := function(f)
 	F := BaseRing(Parent(f));
 
 	fTT := AssociativeArray();
@@ -657,7 +661,11 @@ get_tt_with_inv := function(f, FFs)
 	fTT[Zero(F)] := Zero(F);
 	invfTT[Zero(F)] := Zero(F);
 
-	for x in FFs do
+	for x in F do
+		if IsDefined(fTT, x) then
+			continue;
+		end if;
+
 		fy := Evaluate(f,x);
 
 		fTT[x] := fy;

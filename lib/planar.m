@@ -1,6 +1,3 @@
-/* Compute ternary representation of the given number. Returns the result
- * as an inverted list: [3^0, 3^1, ..., 3^n], instead of [3^n, 3^(n-1), .., 3^0]
- */
 /* Compute p-weight of n */
 weight := function(p,n)
 	w := 0;
@@ -23,21 +20,24 @@ getFFs:=function(F)
 	for i:=1 to ((#F-1) div 2) do
   		Remove(~FFs,Index(FFs,-FFs[i]));
 	end for;
- 
+
 	return FFs;
 end function;
 
 fastIsPlanarDOPoly:=function(f,FFs)
-  S:={};
-  for a in FFs do
-    b:=Evaluate(f,a);
-    if b in S then
-      return false;
-    end if;
+	S:={};
 
-    Include(~S, b);
-  end for;
-  return true;
+	for a in FFs do
+		b:=Evaluate(f,a);
+
+		if b in S then
+			return false;
+		end if;
+
+		Include(~S, b);
+	end for;
+
+	return true;
 end function;
 
 /* Check if a function is DO poly */
