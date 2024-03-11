@@ -159,16 +159,18 @@ getFunFromSpecialSemifield:=function(R,Op,Op1,Op2)
   m:=n div 2;
   Out:=[];
   for a in GF(p^(2*m)) do
-          s:=Eltseq(a);
-          s1:=s[1..m];
-          s2:=s[(m+1)..2*m];
-          a1:=Seqelt(s1,GF(p^m));
-          a2:=Seqelt(s2,GF(p^m));
-          b1:=Evaluate(Op,a1)+Evaluate(Op1,Evaluate(Op,a2) );
-          b2:=2*a1*a2+Evaluate(Op2,a2^2);
-          t1:=Eltseq(b1);
-          t2:=Eltseq(b2);
-          Append(~Out,Seqelt(t1 cat t2,GF(p^(2*m))));
+    s:=Eltseq(a);
+    s1:=s[1..m];
+    s2:=s[(m+1)..2*m];
+    a1:=Seqelt(s1,GF(p^m));
+    a2:=Seqelt(s2,GF(p^m));
+
+    b1:=Evaluate(Op,a1) + Evaluate(Op1,Evaluate(Op,a2));
+    b2:=2*a1*a2+Evaluate(Op2,a2^2);
+
+    t1:=Eltseq(b1);
+    t2:=Eltseq(b2);
+    Append(~Out,Seqelt(t1 cat t2,GF(p^(2*m))));
   end for;
   return R!Interpolation([a: a in GF(p^(2*m))],Out);
 end function;
@@ -184,25 +186,25 @@ getFunFromSpecialSemifieldTT:=function(R,Op,Op1,Op2)
   Out[Zero(F)] := Zero(F); 
 
   for a in F do
-      if IsDefined(Out, a) then
-        continue;
-      end if;
+    if IsDefined(Out, a) then
+      continue;
+    end if;
 
-      s:=Eltseq(a);
-      s1:=s[1..m];
-      s2:=s[(m+1)..2*m];
-      a1:=Seqelt(s1,GF(p^m));
-      a2:=Seqelt(s2,GF(p^m));
+    s:=Eltseq(a);
+    s1:=s[1..m];
+    s2:=s[(m+1)..2*m];
+    a1:=Seqelt(s1,GF(p^m));
+    a2:=Seqelt(s2,GF(p^m));
 
-      b1:=Op[a1] + Op1[Op[a2]];
-      b2:=2*a1*a2 + Op2[a2^2];
+    b1:=Op[a1] + Op1[Op[a2]];
+    b2:=2*a1*a2 + Op2[a2^2];
 
-      t1:=Eltseq(b1);
-      t2:=Eltseq(b2);
+    t1:=Eltseq(b1);
+    t2:=Eltseq(b2);
 
-      fa := Seqelt(t1 cat t2,F);
-      Out[a] := fa;
-      Out[-a] := fa;
+    fa := Seqelt(t1 cat t2,F);
+    Out[a] := fa;
+    Out[-a] := fa;
   end for;
 
   return Out;
@@ -219,25 +221,25 @@ getFunFromSpecialSemifieldTT_zero_op2:=function(R,Op,Op1)
   Out[Zero(F)] := Zero(F); 
 
   for a in F do
-      if IsDefined(Out, a) then
-        continue;
-      end if;
+    if IsDefined(Out, a) then
+      continue;
+    end if;
 
-      s:=Eltseq(a);
-      s1:=s[1..m];
-      s2:=s[(m+1)..2*m];
-      a1:=Seqelt(s1,GF(p^m));
-      a2:=Seqelt(s2,GF(p^m));
+    s:=Eltseq(a);
+    s1:=s[1..m];
+    s2:=s[(m+1)..2*m];
+    a1:=Seqelt(s1,GF(p^m));
+    a2:=Seqelt(s2,GF(p^m));
 
-      b1:=Op[a1] + Op1[Op[a2]];
-      b2:=2*a1*a2;
+    b1:=Op[a1] + Op1[Op[a2]];
+    b2:=2*a1*a2;
 
-      t1:=Eltseq(b1);
-      t2:=Eltseq(b2);
+    t1:=Eltseq(b1);
+    t2:=Eltseq(b2);
 
-      fa := Seqelt(t1 cat t2,F);
-      Out[a] := fa;
-      Out[-a] := fa;
+    fa := Seqelt(t1 cat t2,F);
+    Out[a] := fa;
+    Out[-a] := fa;
   end for;
 
   return Out;
@@ -271,6 +273,7 @@ getDTT:=function(R)
   m:=n div 2;
   Fq := GF(p^m);
 
+  // Op := x^2
   OpTT := AssociativeArray();
   for a in Fq do
     if IsDefined(OpTT, a) then
@@ -325,7 +328,7 @@ getCGTT:=function(R)
   m:=n div 2;
   Fq := GF(p^m);
   
-  // Op is x^2
+  // Op := x^2
   OpTT := AssociativeArray();
   for a in Fq do
     if IsDefined(OpTT, a) then
@@ -360,20 +363,28 @@ getZP:=function(R)
   m:=n div 2;
   RR<y>:=PolynomialRing(GF(p^m));
   Op2:=Zero(RR);
+
   ZP:=[];
+
   ns:=pickNonSquare(GF(p^m));
-  cop:=[i: i in [1..(m div 2)]] cat [0];
+
   for k:=0 to (m div 2) do
-    if IsOdd(m div GCD(m,k)) then
-      Op:=2*y^(p^k+1);
-      for i:=0 to (m div 2) do
-        if not [i,k] eq [0,0] then
-          Op1:=ns*y^(p^i);
-          Append(~ZP,getFunFromSpecialSemifield(R,Op,Op1,Op2));
-        end if;
-      end for;
+    if Iseven(m div GCD(m,k)) then
+      continue;
     end if;
+
+    Op:=2*y^(p^k+1);
+
+    for i:=0 to (m div 2) do
+      if IsZero(i) and IsZero(k) then
+        continue;
+      end if;
+
+      Op1:=ns*y^(p^i);
+      Append(~ZP,getFunFromSpecialSemifield(R,Op,Op1,Op2));
+    end for;
   end for;
+
   return ZP;
 end function;
 
@@ -396,10 +407,15 @@ getZPTT:=function(R)
   Op := [];
   Op1 := [];
   for k in [0..(m div 2)] do
+    Apk := AssociativeArray();
+    for a in Fq do
+      Apk[a] := a^(p^k);
+    end for;
+
     OpTT := AssociativeArray();
 
     for a in Fq do
-      OpTT[a] := 2*a^(p^k+1);
+      OpTT[a] := 2*a*Apk[a];
     end for;
 
     Append(~Op, OpTT);
@@ -410,7 +426,7 @@ getZPTT:=function(R)
     
     Op1TT := AssociativeArray();
     for a in Fq do
-      Op1TT[a] := ns * a^(p^k);
+      Op1TT[a] := ns * Apk[a];
     end for;
 
     Append(~Op1, Op1TT);
@@ -441,16 +457,16 @@ getG:=function(R)
   m:=n div 2;
   Out:=[];
   for a in GF(p^(2*m)) do
-          s:=Eltseq(a);
-          s1:=s[1..m];
-          s2:=s[(m+1)..2*m];
-          a1:=Seqelt(s1,GF(p^m));
-          a2:=Seqelt(s2,GF(p^m));
-          b1:=a1^2-2*a2^10;
-          b2:=2*a1*a2+a2^6;
-          t1:=Eltseq(b1);
-          t2:=Eltseq(b2);
-          Append(~Out,Seqelt(t1 cat t2,GF(p^(2*m))));
+    s:=Eltseq(a);
+    s1:=s[1..m];
+    s2:=s[(m+1)..2*m];
+    a1:=Seqelt(s1,GF(p^m));
+    a2:=Seqelt(s2,GF(p^m));
+    b1:=a1^2-2*a2^10;
+    b2:=2*a1*a2+a2^6;
+    t1:=Eltseq(b1);
+    t2:=Eltseq(b2);
+    Append(~Out,Seqelt(t1 cat t2,GF(p^(2*m))));
   end for;
   return [R!Interpolation([a: a in GF(p^(2*m))],Out)];
 end function;

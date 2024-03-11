@@ -6,7 +6,7 @@ load "lib/dupeq.m";
 F<u> := GF(3^10);
 R<x> := PolynomialRing(F);
 
-//R is over GF(3^10)
+// R is over GF(3^10)
 getBH_n_10:=function(R)
     F<u>:=BaseRing(R);
     o:=u^61;

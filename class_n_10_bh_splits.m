@@ -7,6 +7,66 @@ n := 10;
 F<u> := GF(p^n);
 R<x> := PolynomialRing(F);
 
+// Re-generalize to find better representative
+testBHequivalence := procedure(fTT, invfTT, orbits)
+    m:=n div 2;
+
+    vDyadic:=function(s)
+        v:=0;
+        while IsEven(s div 2^v) do
+        v +:=1;
+        end while;
+        return v;
+    end function;    
+
+    subfields := {sub<F|d> : d in Divisors(n)};
+
+    for b in F:
+        if IsZero(b) or IsSquare(a) then
+            continue;
+        end if;
+
+        bpm :=b^(p^m);
+
+        for o in F do
+            if o in GF(p^m) then
+                continue;
+            end if;
+
+            for s:=1 to (m-1) do
+                if not vDyadic(m) eq vDyadic(s) then
+                    g:=b*x^(p^s+1)+ bpm * x^(p^m *(p^s+1));
+                    cand := x^(p^m+1) + o*g;
+                
+                    coeff := {c : c in Coefficients(f)};
+                    for s in subfields do
+                        if coeff subset s then
+                            d := Degree(s);
+                            m := n div d;
+
+                            break;
+                        end if;
+                    end for;
+
+                    // We don't want worse representatives, just let it go
+                    if m gt 2 then
+                        continue;
+                    end if;
+
+                    candTT, invcandTT := get_tt_with_inv(cand);
+                    
+                    s, l1, l2 := dupeq_with_l2_representatives_tt(fTT, invfTT, candTT, invcandTT, orbits);
+                    if s then
+                        printf "Found candindate %o\n", cand;
+                    end if;
+                end if;
+            end for;
+        end for;
+    end for;
+
+    return BH;
+end function;
+
 BH := [
     x^2430 + x^244 + u^44286*x^10,
     x^19926 + x^244 + u^44286*x^82
@@ -143,9 +203,69 @@ end procedure;
 SetMemoryLimit(10^10);
 
 print "Split bh1";
-split_BH(BH[1], bh1TT, invbh1TT, bh2TT, invbh2TT);
+// split_BH(BH[1], bh1TT, invbh1TT, bh2TT, invbh2TT);
+star:=function(u,v)
+    return bh1TT[u+v] - bh1TT[u] - bh1TT[v];
+end function;
+
+e := One(F);
+
+starPsi := AssociativeArray();
+for u in F do
+    starPsi[star(u,e)] := u;
+end for;
+
+asterisk := function(u,v)
+    return star(starPsi[u],starPsi[v]);
+end function;
+
+f1TT:= AssociativeArray();
+invf1TT := AssociativeArray();
+for x in F do
+    if IsDefined(f1TT, x) then
+        continue;
+    end if;
+
+    f1TT[x] := asterisk(asterisk(One(F),x),x);
+    f1TT[-x] := f1TT[x];
+    invf1TT[f1TT[x]] := Min({x,-x});
+end for;
+
+orbits := {}; // TODO orbits
+
+testBHequivalence(f1TT, invf1TT, orbits);
 
 print "Split bh2";
-split_BH(BH[2], bh2TT, invbh2TT, bh1TT, invbh1TT);
+
+star:=function(u,v)
+    return bh2TT[u+v] - bh2TT[u] - bh2TT[v];
+end function;
+
+e := One(F);
+
+starPsi := AssociativeArray();
+for u in F do
+    starPsi[star(u,e)] := u;
+end for;
+
+asterisk := function(u,v)
+    return star(starPsi[u],starPsi[v]);
+end function;
+
+f1TT:= AssociativeArray();
+invf1TT := AssociativeArray();
+for x in F do
+    if IsDefined(f1TT, x) then
+        continue;
+    end if;
+
+    f1TT[x] := asterisk(asterisk(One(F),x),x);
+    f1TT[-x] := f1TT[x];
+    invf1TT[f1TT[x]] := Min({x,-x});
+end for;
+
+orbits := {}; // TODO orbits
+
+testBHequivalence(f1TT, invf1TT, orbits);
 
 UnsetLogFile();
