@@ -140,7 +140,7 @@ getBH:=function(R)
   b:=pickNonSquare(F);
   o:=F.1;
   for s:=1 to (m-1) do
-    if IsZero(s) or not vDyadic(m) eq vDyadic(s) then
+    if not vDyadic(m) eq vDyadic(s) then
       g:=b*x^(p^s+1)+b^(p^m) *x^(p^m *(p^s+1));
       Append(~BH,x^(p^m+1)+o*g);
     end if;
