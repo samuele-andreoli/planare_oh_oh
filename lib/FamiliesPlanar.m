@@ -369,7 +369,7 @@ getZP:=function(R)
   ns:=pickNonSquare(GF(p^m));
 
   for k:=0 to (m div 2) do
-    if Iseven(m div GCD(m,k)) then
+    if IsEven(m div GCD(m,k)) then
       continue;
     end if;
 
