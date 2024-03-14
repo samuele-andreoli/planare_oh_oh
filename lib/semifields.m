@@ -63,6 +63,7 @@ getNuclei:=function(f, e)
     // Max order of a non trivial (Fq) nucleus
     p:=Characteristic(F);
     D:=Divisors(Degree(F));
+    id:=star(e,e);
     Nm:={id*a: a in PrimeField(F)};
     N:=Nm;
     for u in F do
