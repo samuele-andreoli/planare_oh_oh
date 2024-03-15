@@ -4,40 +4,25 @@ load "lib/dupeq.m";
 p := 3;
 n := 10;
 
-F<u> := GF(p^n);
+F<a> := GF(p^n);
 R<x> := PolynomialRing(F);
 
-BH := [
-    x^2430 + x^244 + u^44286*x^10,
-    x^19926 + x^244 + u^44286*x^82
+ZP_cop0 := [
+    2*x^19926 + 2*x^486 + 2*x^82 + x^2,
+    x^2430 + x^486 + x^10 + 2*x^2
 ];
 
-bh1TT, invbh1TT := get_tt_with_inv(BH[1]);
-bh2TT, invbh2TT := get_tt_with_inv(BH[2]);
+zp1TT, invzp1TT := get_tt_with_inv(ZP_cop0[1]);
+zp2TT, invzp2TT := get_tt_with_inv(ZP_cop0[2]);
 
-orbit_rep := {u^17, One(F), u, u^2, u^3, u^4, u^5, u^6, u^8, u^10, u^11, u^12, u^13};
+orbits := { 1, a^17, a, a^2, a^19, a^20, a^4, a^5, a^7, a^8, a^10, a^61, a^11, a^16 };
 
-getZP_cop0_TT:=function(R)
-    F:=BaseRing(R);
-    p:=Characteristic(F);
-    n:=Degree(F);
-
-    if not IsDivisibleBy(n,2) then
-        return [];
-    end if;
-
-    m:=n div 2;
+// Re-generalize to find better representative
+findBetterRepresentatives := procedure(fTT, invfTT, gTT, invgTT, orbitsf, orbitsg)
+    m := n div 2;
     Fq := GF(p^m);
 
-    ZP:=[];
-    ns:=pickNonSquare(GF(p^m));
-
-    Op1TT := AssociativeArray();
-    for a in Fq do
-        // Op1:=ns*y;
-        Op1TT[a] := ns * a;
-    end for;
-
+    OpTTs := [];
     for k:=1 to (m div 2) do
         if IsEven(m div GCD(m,k)) then
             continue;
@@ -48,147 +33,132 @@ getZP_cop0_TT:=function(R)
             // Op := 2*y^(p^k+1)
             OpTT[a] := 2*a^(p^k+1);
         end for;
-
-        Append(~ZP, getFunFromSpecialSemifieldTT_zero_op2(R,OpTT,Op1TT));
     end for;
 
-    return ZP;
-end function;
+    for ns in F do
+        if IsZero(ns) or IsSquare(ns) then
+            continue;
+        end if;
 
-/* Check if ZP splits into BH (quick, we have nuclei)*/
-// SetLogFile("logs/zp_bh_split.txt": Overwrite := true);
+        Op1TT := AssociativeArray();
+        for a in Fq do
+            // Op1:=ns*y;
+            Op1TT[a] := ns * a;
+        end for;
 
-// for zTT in getZP_cop0_TT(R) do
-//     star:=function(u,v)
-//         return zTT[u+v] - zTT[u] - zTT[v];
-//     end function;
+        for OpTT in OpTTs do
+            candTT := getFunFromSpecialSemifieldTT_zero_op2(R,OpTT,Op1TT);
 
-//     e := Zero(F);
-//     for a in F do
-//         if IsOne(star(a,a)) then
-//             e := a;
-//             break;
-//         end if;
-//     end for;
+            invcandTT := AssociativeArray();
+            for x in F do
+                if IsDefined(invcandTT, candTT[x]) then
+                    continue;
+                end if;
 
-//     assert not IsZero(e);
+                invcandTT[candTT[x]] := Min({x, -x});
+            end for;
 
-//     starPsi := AssociativeArray();
-//     for u in F do
-//         starPsi[star(u,e)] := u;
-//     end for;
+            success, l1, l2 := dupeq_with_l2_representatives_tt(fTT, invfTT, candTT, invcandTT, orbitsf);
+            if success then
+                printf "Found candindate for ZP1 %o\n", cand;
+                continue;
+            end if;
 
-//     asterisk := function(u,v)
-//         return star(starPsi[u],starPsi[v]);
-//     end function;
-
-//     N:=GF(3);
-//     Nm:=GF(3^2);
-
-//     CandidatesB:={Rep({asterisk(u,b): u in N| not IsZero(u)}): b in Nm | not b in N};
-
-//     for b in CandidatesB do
-//         f1TT:= AssociativeArray();
-//         invf1TT := AssociativeArray();
-//         for x in F do
-//             if IsDefined(f1TT, x) then
-//                 continue;
-//             end if;
-
-//             f1TT[x] := asterisk(asterisk(b,x),x);
-//             f1TT[-x] := f1TT[x];
-//             invf1TT[f1TT[x]] := Min({x,-x});
-//         end for;
-
-//         s, l1, l2 := dupeq_with_l2_representatives_tt(bh1TT, invbh1TT, f1TT, invf1TT, orbit_rep);
-//         if s then
-//             print "Splits into BH1";
-//             b;
-//             e;
-//             Interpolation([u : u in F], [l1[u] : u in F]);
-//             Interpolation([u : u in F], [l2[u] : u in F]);
-//             break;
-//         end if;
-
-//         s, l1, l2 := dupeq_with_l2_representatives_tt(bh1TT, invbh1TT, f1TT, invf1TT, orbit_rep);
-//         if s then
-//             print "Splits into BH2";
-//             b;
-//             e;
-//             Interpolation([u : u in F], [l1[u] : u in F]);
-//             Interpolation([u : u in F], [l2[u] : u in F]);
-//             break;
-//         end if;
-//     end for;
-// end for;
-
-// UnsetLogFile();
+            success, l1, l2 := dupeq_with_l2_representatives_tt(gTT, invgTT, candTT, invcandTT, orbitsg);
+            if success then
+                printf "Found candindate for ZP2 %o\n", cand;
+                continue;
+            end if;
+        end for;
+    end for;
+end procedure;
 
 SetLogFile("logs/zp_split.txt": Overwrite := true);
 
-zps :=  getZP_cop0_TT(R);
+/* Check if ZP1/2 splits (into ZP2/1) */
 
-zTT := zps[1];
-zTT2 := zps[2];
+split_ZP := procedure(f, ZP1TT, invZP1TT, ZP2TT, invZP2TT)
+    star:=function(u,v)
+        return ZP1TT[u+v] - ZP1TT[u] - ZP1TT[v];
+    end function;
 
-invzTT2 := AssociativeArray();
-for a in F do
-    if IsDefined(invzTT2, a) then
-        continue;
-    end if;
+    e := Zero(F);
+    for a in F do
+        if IsOne(star(a,a)) then
+            e := a;
+            break;
+        end if;
+    end for;
 
-    invzTT2[zTT2[a]] := Min({a, -a});
-end for;
+    assert not IsZero(e);
 
-/* To compute orbits, then use precomputed */
+    starPsi := AssociativeArray();
+    for u in F do
+        starPsi[star(u,e)] := u;
+    end for;
 
-print "Interpolation";
+    asterisk := function(u,v)
+        return star(starPsi[u],starPsi[v]);
+    end function;
 
-z := Interpolation([u : u in F], [zTT[u] : u in F]);
-z2 := Interpolation([u : u in F], [zTT2[u] : u in F]);
+    N:=GF(3);
+    Nm:=GF(3^2);
 
-invzTT := AssociativeArray();
-for a in F do
-    if IsDefined(invzTT, a) then
-        continue;
-    end if;
+    CandidatesB:={Rep({asterisk(u,b): u in N| not IsZero(u)}): b in Nm | not b in N};
 
-    invzTT[zTT[a]] := Min({a, -a});
-end for;
+    for b in CandidatesB do
+        f1TT:= AssociativeArray();
+        invf1TT := AssociativeArray();
+        for x in F do
+            if IsDefined(f1TT, x) then
+                continue;
+            end if;
 
-print "Computing orbits";
+            f1TT[x] := asterisk(asterisk(b,x),x);
+            f1TT[-x] := f1TT[x];
+            invf1TT[f1TT[x]] := Min({x,-x});
+        end for;
 
-tp := trivialPartition(z);
-orbits := partitionByL2tt(zTT, invzTT, tp);
-z;
-{* #o : o in orbits*};
-orbit_rep := {Min(o) : o in orbits};
-orbit_rep;
+        s, l1, l2 := dupeq_with_l2_representatives_tt(ZP1TT, invZP1TT, f1TT, invf1TT, orbits);
+        if s then
+            continue;
+        end if;
 
-tp := trivialPartition(z2);
-orbits := partitionByL2tt(zTT2, invzTT2, tp);
-z2;
-{* #o : o in orbits*};
-orbit_rep := {Min(o) : o in orbits};
-orbit_rep;
+        print "Splits!";
 
-quit;
+        s, l1, l2 := dupeq_with_l2_representatives_tt(ZP2TT, invZP2TT, f1TT, invf1TT, orbits);
+        if s then
+            print "Splits into ZP2";
+            b;
+            e;
+            Interpolation([u : u in F], [l1[u] : u in F]);
+            Interpolation([u : u in F], [l2[u] : u in F]);
+        else
+            b;
+            e;
+            print "Splits into new function";
+        end if;
+    end for;
+end procedure;
 
-/* End orbits computation */ 
+SetMemoryLimit(10^10);
 
+/* Find splits for zp1 and zp2 */
+
+print "Split zp1";
+split_ZP(ZP_cop0[1], zp1TT, invzp1TT, zp2TT, invzp2TT);
+
+print "Split zp2";
+split_ZP(ZP_cop0[2], zp2TT, invzp2TT, zp1TT, invzp1TT);
+
+/* Compute naive split of ZP1 for dupeq */
 star:=function(u,v)
-    return zTT[u+v] - zTT[u] - zTT[v];
+    return zp1TT[u+v] - zp1TT[u] - zp1TT[v];
 end function;
 
-e := Zero(F);
-for a in F do
-    if IsOne(star(a,a)) then
-        e := a;
-        break;
-    end if;
-end for;
-
-assert not IsZero(e);
+// TODO b,e from split
+e := One(F);
+b := One(F);
 
 starPsi := AssociativeArray();
 for u in F do
@@ -199,23 +169,66 @@ asterisk := function(u,v)
     return star(starPsi[u],starPsi[v]);
 end function;
 
-N:=GF(3);
-Nm:=GF(3^2);
+fTT:= AssociativeArray();
+invfTT := AssociativeArray();
+for x in F do
+    if IsDefined(fTT, x) then
+        continue;
+    end if;
 
-CandidatesB:={Rep({asterisk(u,b): u in N| not IsZero(u)}): b in Nm | not b in N};
-
-for b in CandidatesB do
-    f1TT:= AssociativeArray();
-    invf1TT := AssociativeArray();
-    for x in F do
-        if IsDefined(f1TT, x) then
-            continue;
-        end if;
-
-        f1TT[x] := asterisk(asterisk(b,x),x);
-        f1TT[-x] := f1TT[x];
-        invf1TT[f1TT[x]] := Min({x,-x});
-    end for;
+    fTT[x] := asterisk(asterisk(b,x),x);
+    fTT[-x] := fTT[x];
+    invfTT[fTT[x]] := Min({x,-x});
 end for;
+
+/* Compute orbits, then use precomputed */
+zp_split := Interpolation([x : x in F],[fTT[x] : x in F]);
+tp := trivialPartition(zp_split);
+orbits := partitionByL2tt(fTT, invfTT, tp);
+{* #o : o in orbits*};
+orbitsf := {Min(o) : o in orbits};
+orbitsf;
+
+/* Compute naive split of ZP2 for dupeq */
+star:=function(u,v)
+    return zp2TT[u+v] - zp2TT[u] - zp2TT[v];
+end function;
+
+// TODO b,e from split
+e := One(F);
+b := One(F);
+
+starPsi := AssociativeArray();
+for u in F do
+    starPsi[star(u,e)] := u;
+end for;
+
+asterisk := function(u,v)
+    return star(starPsi[u],starPsi[v]);
+end function;
+
+gTT:= AssociativeArray();
+invgTT := AssociativeArray();
+for x in F do
+    if IsDefined(gTT, x) then
+        continue;
+    end if;
+
+    gTT[x] := asterisk(asterisk(b,x),x);
+    gTT[-x] := gTT[x];
+    invgTT[gTT[x]] := Min({x,-x});
+end for;
+
+/* Compute orbits, then use precomputed */
+zp_split := Interpolation([x : x in F],[gTT[x] : x in F]);
+tp := trivialPartition(zp_split);
+orbits := partitionByL2tt(gTT, invgTT, tp);
+{* #o : o in orbits*};
+orbitsg := {Min(o) : o in orbits};
+orbitsg;
+
+print "Find better representatives";
+
+findBetterRepresentatives(fTT, invfTT, gTT, invgTT, orbitsf, orbitsg);
 
 UnsetLogFile();
