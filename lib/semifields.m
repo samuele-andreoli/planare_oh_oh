@@ -101,13 +101,11 @@ getNuclei:=function(f, e)
             else
                 dnextN:=Divisors(n div dN)[2];
             end if;
-            if not u in Nm then
-                SpanNuclei(~Nm,~dNm,u);
-                if dNm eq n then
-                    flagNm:=false;
-                else
-                    dnextNm:=Divisors(n div dNm)[2];
-                end if;
+            SpanNuclei(~Nm,~dNm,u);
+            if dNm eq n then
+                flagNm:=false;
+            else
+                dnextNm:=Divisors(n div dNm)[2];
             end if;
         elif flagNm and not u in Nm and IsZero(Evaluate(g,[a,u,b])) then
             uN -:=1;
