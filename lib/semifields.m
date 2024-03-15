@@ -70,7 +70,7 @@ getNuclei:=function(f, e)
     dN:=1;
     dNm:=dN;
     dnextN:=Divisors(n)[2];
-    dnextNm:=dnextNm;
+    dnextNm:=dnextN;
     uN:=#F;
     uNm:=uN;
     SpanNuclei:=procedure(~M,~dM,u)
@@ -88,7 +88,7 @@ getNuclei:=function(f, e)
                     end for;
                 end if;
             end for;
-            u0:=Evaluate(astP,[u,u0,id]);
+            u0:=Evaluate(astrP,[u,u0,id]);
         end while;
     end procedure;
     flagN:=true;
@@ -114,7 +114,7 @@ getNuclei:=function(f, e)
             if flagN and Log(p,uN) lt dnextN then
                 flagN:=false;
             end if;
-            SpanNuclei(~Nm,~dNm,u,Nm);
+            SpanNuclei(~Nm,~dNm,u);
         else
             uN -:=1;
             uNm -:=1;
