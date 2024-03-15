@@ -31,8 +31,8 @@ end function;
 getNuclei:=function(f, e)
     assert not IsZero(e);
 
-    F := Parent(e);
-
+    F := BaseRing(Parent(f));
+    n:=Degree(F);
     RR<a,b,c> := PolynomialRing(F,3);
     R0 := PolynomialRing(RR);
 
@@ -64,22 +64,69 @@ getNuclei:=function(f, e)
     p:=Characteristic(F);
     D:=Divisors(Degree(F));
     id:=star(e,e);
+    astrP:=Evaluate(fl,[a,b,id]);
     Nm:={id*a: a in PrimeField(F)};
     N:=Nm;
+    dN:=1;
+    dNm:=dN;
+    dnextN:=Divisors(n)[2];
+    dnextNm:=dnextNm;
+    uN:=#F;
+    uNm:=uN;
+    SpanNuclei:=procedure(~M,~dM,u)
+        u0:=u;
+        M0:=M;
+        dM0:=dM;
+        while not u0 in M do
+            dM *:=dM0;
+            M1:=M;
+            for a in M0 do
+                if not IsZero(a) then
+                    a1:=asterisk(a,u0);
+                    for b1 in M1 do
+                        Include(~M,a1+b1);
+                    end for;
+                end if;
+            end for;
+            u0:=Evaluate(astP,[u,u0,id]);
+        end while;
+    end procedure;
+    flagN:=true;
+    flagNm:=true;
     for u in F do
-        if not u in N and IsZero(Evaluate(g,[a,b,u])) then
-            u0:=u;
-            while not u0 eq id do
-                Include(~Nm,u0);
-                Include(~N,u0);
-                u0:=asterisk(u,u0);
-            end while;
-        elif not u in Nm and IsZero(Evaluate(g,[a,u,b])) then
-            u0:=u;
-            while not u0 eq id do
-                Include(~Nm,u0);
-                u0:=asterisk(u,u0);
-            end while;
+        if flagN and not u in N and IsZero(Evaluate(g,[a,b,u])) then
+            SpanNuclei(~N,~dN,u);
+            if dN eq n then
+                flagN:=false;
+            else
+                dnextN:=Divisors(n div dN)[2];
+            end if;
+            if not u in Nm then
+                SpanNuclei(~Nm,~dNm,u);
+                if dNm eq n then
+                    flagNm:=false;
+                else
+                    dnextNm:=Divisors(n div dNm)[2];
+                end if;
+            end if;
+        elif flagNm and not u in Nm and IsZero(Evaluate(g,[a,u,b])) then
+            uN -:=1;
+            if flagN and Log(p,uN) lt dnextN then
+                flagN:=false;
+            end if;
+            SpanNuclei(~Nm,~dNm,u,Nm);
+        else
+            uN -:=1;
+            uNm -:=1;
+            if flagN and Log(p,uN) lt dnextN then
+                flagN:=false;
+            end if;
+            if flagNm and Log(p,uNm) lt dnextN then
+                flagNm:=false;
+            end if;
+        end if;
+        if not (flagN or flagNm) then
+            break;
         end if;
     end for;
     return [N,Nm];
