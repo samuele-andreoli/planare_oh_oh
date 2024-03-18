@@ -56,10 +56,10 @@ getNuclei:=function(f, e)
     end function;
     id:=star(e,e);
     // Associativity equation
-    astrP:=asterisk(a,b);
-    fl :=Evaluate(astrP,[astrP,c,id]); 
-    //fl :=asterisk(asterisk(a,b),c);
-    //astrP:=Evaluate(fl,[a,b,id]);
+    //astrP:=asterisk(a,b);
+    //fl :=Evaluate(astrP,[astrP,c,id]); 
+    fl :=asterisk(asterisk(a,b),c);
+    astrP:=Evaluate(fl,[a,b,id]);
     fr := Evaluate(fl,[b,c,a]);
     g  := fl-fr;
 
