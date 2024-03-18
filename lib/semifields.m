@@ -56,10 +56,8 @@ getNuclei:=function(f, e)
     end function;
     id:=star(e,e);
     // Associativity equation
-    //astrP:=asterisk(a,b);
-    //fl :=Evaluate(astrP,[astrP,c,id]); 
-    fl :=asterisk(asterisk(a,b),c);
-    astrP:=Evaluate(fl,[a,b,id]);
+    astrP:=asterisk(a,b);
+    fl :=asterisk(astrP,c);
     fr := Evaluate(fl,[b,c,a]);
     g  := fl-fr;
 
@@ -70,20 +68,29 @@ getNuclei:=function(f, e)
     N:=Nm;
     dN:=1;
     dNm:=dN;
-    dnextN:=Divisors(n)[2];
-    dnextNm:=dnextN;
+    nextN:=p^Divisors(n)[2];
+    nextNm:=nextN;
     uN:=#F;
     uNm:=uN;
+
+    UpdateFlag:=procedure(~flagM,uM,nextM)
+        flagM:=uM ge nextM;
+    end procedure;
+
+    UpdateNextDimension:=procedure(~nextM,dM)
+        nextM:=p^(dM*Divisors(n div dM)[2]);
+    end procedure;
+
     SpanNuclei:=procedure(~M,~dM,u)
         u0:=u;
         M0:=M;
         dM0:=dM;
         while not u0 in M do
-            dM *:=dM0;
+            dM +:=dM0;
             M1:=M;
             for a in M0 do
                 if not IsZero(a) then
-                    a1:=asterisk(a,u0);
+                    a1:=Evaluate(astrP,[a,u0,id]);
                     for b1 in M1 do
                         Include(~M,a1+b1);
                     end for;
@@ -92,6 +99,7 @@ getNuclei:=function(f, e)
             u0:=Evaluate(astrP,[u,u0,id]);
         end while;
     end procedure;
+
     flagN:=true;
     flagNm:=true;
     for u in F do
@@ -101,34 +109,31 @@ getNuclei:=function(f, e)
                 Nm:=N;
                 break;
             else
-                dnextN:=Divisors(n div dN)[2];
+                UpdateNextDimension(~nextN,dN);
+                UpdateFlag(~flagN,uN,nextN);
             end if;
+
             SpanNuclei(~Nm,~dNm,u);
             if dNm eq n then
                 break;
             else
-                dnextNm:=Divisors(n div dNm)[2];
+                UpdateNextDimension(~nextNm,dNm);
+                UpdateFlag(~flagNm,uNm,nextNm);
             end if;
         elif flagNm and not u in Nm and IsZero(Evaluate(g,[a,u,b])) then
             uN -:=1;
-            if flagN and Log(p,uN) lt dnextN then
-                flagN:=false;
-            end if;
             SpanNuclei(~Nm,~dNm,u);
             if dNm eq n then
                 break;
             else
-                dnextNm:=Divisors(n div dNm)[2];
+                UpdateNextDimension(~nextNm,dNm);
+                UpdateFlag(~flagNm,uNm,nextNm);
             end if;
         else
             uN -:=1;
             uNm -:=1;
-            if flagN and Log(p,uN) lt dnextN then
-                flagN:=false;
-            end if;
-            if flagNm and Log(p,uNm) lt dnextNm then
-                flagNm:=false;
-            end if;
+            UpdateFlag(~flagN,uN,nextN);
+            UpdateFlag(~flagNm,uNm,nextNm);
         end if;
         if not (flagN or flagNm) then
             break;
