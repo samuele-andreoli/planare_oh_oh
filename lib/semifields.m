@@ -3,7 +3,7 @@ DOToSemifieldPoly:=function(f, e)
 
     F := Parent(e);
 
-    RR<a,b> := PolynomialRing(F,3);
+    RR<a,b> := PolynomialRing(F,2);
     R0 := PolynomialRing(RR);
 
     f := R0!f;
