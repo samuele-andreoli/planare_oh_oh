@@ -54,17 +54,18 @@ getNuclei:=function(f, e)
     asterisk := function(u,v)
         return star(EvaluateMod(starPsi,u),EvaluateMod(starPsi,v));
     end function;
-
+    id:=star(e,e);
     // Associativity equation
-    fl := asterisk(asterisk(a,b),c);
+    astrP:=asterisk(a,b);
+    fl :=Evaluate(astrP,[astrP,c,id]); 
+    //fl :=asterisk(asterisk(a,b),c);
+    //astrP:=Evaluate(fl,[a,b,id]);
     fr := Evaluate(fl,[b,c,a]);
     g  := fl-fr;
 
     // Max order of a non trivial (Fq) nucleus
     p:=Characteristic(F);
     D:=Divisors(Degree(F));
-    id:=star(e,e);
-    astrP:=Evaluate(fl,[a,b,id]);
     Nm:={id*a: a in PrimeField(F)};
     N:=Nm;
     dN:=1;
