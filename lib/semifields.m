@@ -92,6 +92,7 @@ getNuclei:=function(f, e)
         end while;
     end procedure;
     flagN:=true;
+    flagNm:=true;
     for u in F do
         if flagN and not u in N and IsZero(Evaluate(g,[a,b,u])) then
             SpanNuclei(~N,~dN,u);
@@ -107,7 +108,7 @@ getNuclei:=function(f, e)
             else
                 dnextNm:=Divisors(n div dNm)[2];
             end if;
-        elif not u in Nm and IsZero(Evaluate(g,[a,u,b])) then
+        elif flagNm and not u in Nm and IsZero(Evaluate(g,[a,u,b])) then
             uN -:=1;
             if flagN and Log(p,uN) lt dnextN then
                 flagN:=false;
@@ -124,9 +125,12 @@ getNuclei:=function(f, e)
             if flagN and Log(p,uN) lt dnextN then
                 flagN:=false;
             end if;
-            if Log(p,uNm) lt dnextNm then
-                break;
+            if flagNm and Log(p,uNm) lt dnextNm then
+                flagNm:=false;
             end if;
+        end if;
+        if not (flagN or flagNm) then
+            break;
         end if;
     end for;
     return [N,Nm];
