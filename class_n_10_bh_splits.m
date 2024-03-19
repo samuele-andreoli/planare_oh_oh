@@ -42,14 +42,12 @@ findBetterRepresentatives := procedure(fTT, invfTT, gTT, invgTT, orbitsf, orbits
                     for s in subfields do
                         if coeff subset s then
                             d := Degree(s);
-                            m := n div d;
-
                             break;
                         end if;
                     end for;
 
                     // We don't want worse representatives, just let it go
-                    if m gt 2 then
+                    if d gt 2 then
                         continue;
                     end if;
 
@@ -57,13 +55,13 @@ findBetterRepresentatives := procedure(fTT, invfTT, gTT, invgTT, orbitsf, orbits
                     
                     success, l1, l2 := dupeq_with_l2_representatives_tt(fTT, invfTT, candTT, invcandTT, orbitsf);
                     if success then
-                        printf "Found candindate for BH1 %o\n", cand;
+                        printf "Found candidate for BH1 %o\n", cand;
                         continue;
                     end if;
 
                     success, l1, l2 := dupeq_with_l2_representatives_tt(gTT, invgTT, candTT, invcandTT, orbitsg);
                     if success then
-                        printf "Found candindate for BH2 %o\n", cand;
+                        printf "Found candidate for BH2 %o\n", cand;
                         continue;
                     end if;
                 end if;
