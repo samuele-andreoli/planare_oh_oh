@@ -161,20 +161,22 @@ getLMPTB:=function(R)
   F:=BaseRing(R);
   p:=Characteristic(F);
   n:=Degree(F);
+  x:=R.1;
   if IsOdd(n) or IsEven(n div 2) then
     return [];
   end if;
   m:=n div 2;
   LMPTB:=[];
-  q:=2^m;
-  FE:=[x^(q^2)-x];
+  q:=p^m;
+  FE:=x^(q^2)-x;
   
   for s in Divisors(m) do
-    if s gt 1 then
-      k:=(s-1) div 2;
-      h:=(&+[(-1)^i *x^(p^(2*i*s)): i in [0..k]]) + (&+[(-1)^(k+j+1) *x^(p^(2*(2*j+1)*s)): j in [0..(k-1)]]);
+    if s lt m then
+      k:=((m div s)-1) div 2;
+      h:=(&+[((-1)^i) *x^(p^((2*i*s) mod n)): i in [0..k]]) + (&+[((-1)^(k+j)) *x^(p^( ((2*j+1)*s)  mod n)): j in [0..(k-1)]]);
       g:=EvaluateMod(h,x-x^q,FE);
-      f:=x^2+x^(2*q) +EvaluateMod(g,x^(p^(2*s)+1),FE)+EvaluateMod(g^q,x^(p^(2*s)+1),FE);
+      g1:=EvaluateMod(g,x^(p^(2*s)+1),FE);
+      f:=x^2+x^(2*q) +g1;
       Append(~LMPTB,f);
     end if;
   end for;
