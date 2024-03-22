@@ -60,13 +60,13 @@ findBetterRepresentatives := procedure(fTT, invfTT, gTT, invgTT, orbitsf, orbits
 
             success, l1, l2 := dupeq_with_l2_representatives_tt(fTT, invfTT, candTT, invcandTT, orbitsf);
             if success then
-                printf "Found candindate for ZP1 %o\n", cand;
+                printf "Found candindate for ZP1 %o\n", Interpolation([x : x in F], [candTT[x] : x in F]);
                 continue;
             end if;
 
             success, l1, l2 := dupeq_with_l2_representatives_tt(gTT, invgTT, candTT, invcandTT, orbitsg);
             if success then
-                printf "Found candindate for ZP2 %o\n", cand;
+                printf "Found candindate for ZP2 %o\n", Interpolation([x : x in F], [candTT[x] : x in F]);
                 continue;
             end if;
         end for;
@@ -156,9 +156,9 @@ star:=function(u,v)
     return zp1TT[u+v] - zp1TT[u] - zp1TT[v];
 end function;
 
-// TODO b,e from split
-e := One(F);
-b := One(F);
+// b,e from split
+e := a^14762;
+b := a^7381;
 
 starPsi := AssociativeArray();
 for u in F do
@@ -182,21 +182,21 @@ for x in F do
 end for;
 
 /* Compute orbits, then use precomputed */
-zp_split := Interpolation([x : x in F],[fTT[x] : x in F]);
-tp := trivialPartition(zp_split);
-orbits := partitionByL2tt(fTT, invfTT, tp);
-{* #o : o in orbits*};
-orbitsf := {Min(o) : o in orbits};
-orbitsf;
+// zp_split := Interpolation([x : x in F],[fTT[x] : x in F]);
+// tp := trivialPartition(zp_split);
+// orbits := partitionByL2tt(fTT, invfTT, tp);
+// {* #o : o in orbits*};
+// orbitsf := {Min(o) : o in orbits};
+orbitsf := { 1, a, a^2, a^3, a^21, a^5, a^6, a^7, a^26, a^10, a^11, a^14, a^15 };
 
 /* Compute naive split of ZP2 for dupeq */
 star:=function(u,v)
     return zp2TT[u+v] - zp2TT[u] - zp2TT[v];
 end function;
 
-// TODO b,e from split
+// b,e from split
 e := One(F);
-b := One(F);
+b := a^7381;
 
 starPsi := AssociativeArray();
 for u in F do
@@ -220,12 +220,12 @@ for x in F do
 end for;
 
 /* Compute orbits, then use precomputed */
-zp_split := Interpolation([x : x in F],[gTT[x] : x in F]);
-tp := trivialPartition(zp_split);
-orbits := partitionByL2tt(gTT, invgTT, tp);
-{* #o : o in orbits*};
-orbitsg := {Min(o) : o in orbits};
-orbitsg;
+// zp_split := Interpolation([x : x in F],[gTT[x] : x in F]);
+// tp := trivialPartition(zp_split);
+// orbits := partitionByL2tt(gTT, invgTT, tp);
+// {* #o : o in orbits*};
+// orbitsg := {Min(o) : o in orbits};
+orbitsg := { 1, a^17, a, a^2, a^3, a^4, a^5, a^26, a^10, a^30, a^14, a^32, a^16 };
 
 print "Find better representatives";
 
