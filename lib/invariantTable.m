@@ -168,7 +168,7 @@ getInvariantTable:=function(n)
             x^14,
             x^1094,
             x^9842
-        }
+        };
     end if;
 
     return invariantTable;

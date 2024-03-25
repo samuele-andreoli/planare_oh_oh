@@ -27,12 +27,14 @@ DOToSemifieldPoly:=function(f, e)
     return asterisk(a,b);
 end function;
 
-
 getNuclei:=function(f, e)
     assert not IsZero(e);
 
     F := BaseRing(Parent(f));
-    n:=Degree(F);
+    p := Characteristic(F);
+    n := Degree(F);
+    D := Divisors(n);
+
     RR<a,b,c> := PolynomialRing(F,3);
     R0 := PolynomialRing(RR);
 
@@ -55,90 +57,89 @@ getNuclei:=function(f, e)
         return star(EvaluateMod(starPsi,u),EvaluateMod(starPsi,v));
     end function;
     id:=star(e,e);
+
     // Associativity equation
     astrP:=asterisk(a,b);
     fl :=asterisk(astrP,c);
     fr := Evaluate(fl,[b,c,a]);
     g  := fl-fr;
 
-    // Max order of a non trivial (Fq) nucleus
-    p:=Characteristic(F);
-    D:=Divisors(Degree(F));
+    Span := function(M, dM, u)
+        S := M;
+        ui := u;
+        dS := dM;
+
+        while not ui in S do
+            dS +:= dM;
+
+            for a in M do
+                if IsZero(a) then
+                    continue;
+                end if;
+
+                ua := Evaluate(astrP, [a, ui, id]);
+                S join:= {ua + b : b in S};
+            end for;
+
+            ui := Evaluate(astrP, [ui, u, id]);
+        end while;
+
+        return S, dS;
+    end function;
+
+    NextDim := function(d)
+        return p^D[Index(D, d)+1]-p^d;
+    end function;
+
     Nm:={id*a: a in PrimeField(F)};
     N:=Nm;
-    dN:=1;
-    dNm:=dN;
-    nextN:=p^Divisors(n)[2];
-    nextNm:=nextN;
-    uN:=#F;
-    uNm:=uN;
 
-    UpdateFlag:=procedure(~flagM,uM,nextM)
-        flagM:=uM ge nextM;
-    end procedure;
+    dN  := 1;
+    dNm := 1;
 
-    UpdateNextDimension:=procedure(~nextM,dM)
-        nextM:=p^(dM*Divisors(n div dM)[2]);
-    end procedure;
+    F_elements := {x : x in F | not x in Nm};
+    elements_for_next_middle_nucleus := NextDim(dN);
+    elements_for_next_nucleus := NextDim(dNm);
 
-    SpanNuclei:=procedure(~M,~dM,u)
-        u0:=u;
-        M0:=M;
-        dM0:=dM;
-        while not u0 in M do
-            dM +:=dM0;
-            M1:=M;
-            for a in M0 do
-                if not IsZero(a) then
-                    a1:=Evaluate(astrP,[a,u0,id]);
-                    for b1 in M1 do
-                        Include(~M,a1+b1);
-                    end for;
-                end if;
-            end for;
-            u0:=Evaluate(astrP,[u,u0,id]);
+    while #F_elements ge elements_for_next_middle_nucleus do
+        /* Choose an element and test Nm membership */
+        ExtractRep(~F_elements, ~u);
+
+        if not IsZero(Evaluate(g, [a,u,b])) then
+            // If u is not in Nm, then it is also not in N. Remove all x1 + u * x2, x1,x2 in Nm
+            F_elements diff:= {x1 + Evaluate(astrP, [x2, u, id]) : x1,x2 in Nm};
+
+            continue;
+        end if;
+
+        // u belongs to Nm, so span it
+        newNm, dNm := Span(Nm, dNm,u);
+        if dNm eq n then
+            return [newNm,newNm];
+        end if;
+
+        elements_for_next_middle_nucleus := NextDim(dNm);
+        F_elements diff:= newNm;
+
+        /* Test if the new elements spanned in Nm belong to N, too. */
+        to_test_for_nucleus := newNm diff Nm;
+        Nm := newNm;
+
+        while #to_test_for_nucleus gt elements_for_next_nucleus do
+            ExtractRep(~to_test_for_nucleus, ~t);
+
+            if IsZero(Evaluate(g,[a,b,t])) then
+                // t belongs to N, so span it
+                N, dN := Span(N,dN,t);
+                elements_for_next_nucleus := NextDim(dN);
+                to_test_for_nucleus diff:= N;
+            else
+                // t not in N. Remove all x1 + u * x2, s.t. x1, x2 in N
+                to_test_for_nucleus diff:= {x1 + Evaluate(astrP, [x2, t, id]) : x1,x2 in N};
+            end if;
         end while;
-    end procedure;
+    end while;
 
-    flagN:=true;
-    flagNm:=true;
-    for u in F do
-        if flagN and not u in N and IsZero(Evaluate(g,[a,b,u])) then
-            SpanNuclei(~N,~dN,u);
-            if dN eq n then
-                Nm:=N;
-                break;
-            else
-                UpdateNextDimension(~nextN,dN);
-                UpdateFlag(~flagN,uN,nextN);
-            end if;
-
-            SpanNuclei(~Nm,~dNm,u);
-            if dNm eq n then
-                break;
-            else
-                UpdateNextDimension(~nextNm,dNm);
-                UpdateFlag(~flagNm,uNm,nextNm);
-            end if;
-        elif flagNm and not u in Nm and IsZero(Evaluate(g,[a,u,b])) then
-            uN -:=1;
-            SpanNuclei(~Nm,~dNm,u);
-            if dNm eq n then
-                break;
-            else
-                UpdateNextDimension(~nextNm,dNm);
-                UpdateFlag(~flagNm,uNm,nextNm);
-            end if;
-        else
-            uN -:=1;
-            uNm -:=1;
-            UpdateFlag(~flagN,uN,nextN);
-            UpdateFlag(~flagNm,uNm,nextNm);
-        end if;
-        if not (flagN or flagNm) then
-            break;
-        end if;
-    end for;
     return [N,Nm];
 end function;
 
