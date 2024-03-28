@@ -88,7 +88,8 @@ getNuclei:=function(f, e)
     end function;
 
     NextDim := function(d)
-        return p^D[Index(D, d)+1]-p^d;
+        D := Divisors(n div d);
+        return p^(d * (Divisors(n div d)[2])) - p^d;
     end function;
 
     Nm:={id*a: a in PrimeField(F)};
