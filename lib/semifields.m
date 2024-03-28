@@ -27,16 +27,40 @@ DOToSemifieldPoly:=function(f, e)
     return asterisk(a,b);
 end function;
 
+/* Vandermonde interpolation for linear functions. */
+VandermondeInterpolation := function(R, X, Y)
+    // Use X[1] instead of R since we want to support polynomial rings
+    // different from PolynomialRing(F).
+    F<a> := Parent(X[1]);
+    n := Degree(F);
+    p := Characteristic(F); 
+
+    assert #Y eq n;
+
+    V := Matrix(F, #X, #X, [[xi^(p^j) : j in [0..(n-1)]] : xi in X]);
+    V := Transpose(V);
+    Y := Vector(F, Y);
+    C := Solution(V,Y);
+
+    return &+[C[i+1] * R.1^(p^i) : i in [0..(n-1)]];
+end function;
+
 getNuclei:=function(f, e)
     assert not IsZero(e);
 
-    F := BaseRing(Parent(f));
+    R := Parent(f);
+    F := BaseRing(R);
     p := Characteristic(F);
     n := Degree(F);
     D := Divisors(n);
 
     RR<a,b,c> := PolynomialRing(F,3);
     R0 := PolynomialRing(RR);
+
+    B := [F.1^(p^i) : i in [0..(n-1)]]; 
+    fe := Evaluate(f, e);
+    starPsi := VandermondeInterpolation(R, [Evaluate(f,b+e) - Evaluate(f,b) - fe : b in B], B);
+    id := Evaluate(f, 2*e) - 2 * Evaluate(f, e);
 
     f := R0!f;
     FE := [a^(#F)-a,b^(#F)-b,c^(#F)-c];
@@ -46,21 +70,23 @@ getNuclei:=function(f, e)
         return &+[NormalForm(Evaluate(t,u), FE) : t in Terms(f0)];
     end function;
 
+    // Fast evaluation of a linear polynomial and reduction by the field equations.
+    EvaluateLinMod := function(l, u)
+        return &+[&+[NormalForm(Evaluate(tl, tu), FE) : tl in Terms(l)] : tu in Terms(u)];
+    end function;
+
     // Construct polynomials for the star and * products
     star:=function(u,v)
         return EvaluateMod(f,u+v) - EvaluateMod(f,u) - EvaluateMod(f,v);
     end function;
 
-    starPsi := R0!Interpolation([F!star(u,e): u in F],[u: u in F]);
-
     asterisk := function(u,v)
-        return star(EvaluateMod(starPsi,u),EvaluateMod(starPsi,v));
+        return star(EvaluateLinMod(starPsi,u), EvaluateLinMod(starPsi,v));
     end function;
-    id:=star(e,e);
 
     // Associativity equation
-    astrP:=asterisk(a,b);
-    fl :=asterisk(astrP,c);
+    astrP := asterisk(a,b);
+    fl := asterisk(astrP,c);
     fr := Evaluate(fl,[b,c,a]);
     g  := fl-fr;
 
