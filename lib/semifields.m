@@ -1,32 +1,3 @@
-DOToSemifieldPoly:=function(f, e)
-    assert not IsZero(e);
-
-    F := Parent(e);
-
-    RR<a,b> := PolynomialRing(F,2);
-    R0 := PolynomialRing(RR);
-
-    f := R0!f;
-    FE := [a^(#F)-a,b^(#F)-b];
-
-    // Fast evaluation of a polynomial and reduction by the field equations.
-    EvaluateMod := function(f0,u)
-        return &+[NormalForm(Evaluate(t,u), FE) : t in Terms(f0)];
-    end function;
-
-    star:=function(u,v)
-        return EvaluateMod(f,u+v) - EvaluateMod(f,u) - EvaluateMod(f,v);
-    end function;
-
-    starPsi:=R0!Interpolation([F!star(u,e): u in F],[u: u in F]);
-
-    asterisk:=function(u,v)
-        return star(EvaluateMod(starPsi,u),EvaluateMod(starPsi,v));
-    end function;
-
-    return asterisk(a,b);
-end function;
-
 /* Vandermonde interpolation for linear functions. */
 VandermondeInterpolation := function(R, X, Y)
     // Use X[1] instead of R since we want to support polynomial rings
@@ -43,6 +14,41 @@ VandermondeInterpolation := function(R, X, Y)
     C := Solution(V,Y);
 
     return &+[C[i+1] * R.1^(p^i) : i in [0..(n-1)]];
+end function;
+
+DOToSemifieldPoly:=function(f, e)
+    assert not IsZero(e);
+
+    R := Parent(f);
+    F := BaseRing(R);
+    p := Characteristic(F);
+    n := Degree(F);
+    D := Divisors(n);
+
+    RR<a,b> := PolynomialRing(F,2);
+    R0 := PolynomialRing(RR);
+
+    f := R0!f;
+    FE := [a^(#F)-a,b^(#F)-b];
+
+    // Fast evaluation of a polynomial and reduction by the field equations.
+    EvaluateMod := function(f0,u)
+        return &+[NormalForm(Evaluate(t,u), FE) : t in Terms(f0)];
+    end function;
+
+    star:=function(u,v)
+        return EvaluateMod(f,u+v) - EvaluateMod(f,u) - EvaluateMod(f,v);
+    end function;
+
+    B := [F.1^(p^i) : i in [0..(n-1)]]; 
+    fe := Evaluate(f, e);
+    starPsi := VandermondeInterpolation(R, [Evaluate(f,b+e) - Evaluate(f,b) - fe : b in B], B);
+
+    asterisk:=function(u,v)
+        return star(EvaluateMod(starPsi,u),EvaluateMod(starPsi,v));
+    end function;
+
+    return asterisk(a,b);
 end function;
 
 getNuclei:=function(f, e)
@@ -152,7 +158,7 @@ getNuclei:=function(f, e)
         to_test_for_nucleus := newNm diff Nm;
         Nm := newNm;
 
-        while #to_test_for_nucleus gt elements_for_next_nucleus do
+        while #to_test_for_nucleus ge elements_for_next_nucleus do
             ExtractRep(~to_test_for_nucleus, ~t);
 
             if IsZero(Evaluate(g,[a,b,t])) then
