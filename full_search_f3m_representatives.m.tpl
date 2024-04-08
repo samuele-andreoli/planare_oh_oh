@@ -5,6 +5,7 @@ load "lib/dupeq.m";
 
 p := @P@;
 n := @N@;
+q := p^n;
 
 l := @L@;
 
@@ -39,7 +40,53 @@ for i in [0..n-1] do
     end for;
 end for;
 
+// Cyclotomic + mult. cosets representatives of the elements in Fp^n
+// When guessing the coeff. for a chosen exponent e, it is enough to get it from here
+F_M_e := AssociativeArray();
+F_cosets := AssociativeArray();
+F_cosets[1] := {One(F)};
+
+print "Computing cosets";
+
+for d in Divisors(q-1) do
+    // Compute M := {a^(f-e) : a in F}
+    if IsDefined(F_cosets, d) then
+        continue;
+    end if;        
+
+    g := a^d;
+    M := {g^i : i in [1..((q-1) div d)]};
+
+    // Find cosets using M and then cyclotomic equivalence
+    F_elements := {x : x in F | not IsZero(x)};
+    coset_reps := {};
+
+    while #F_elements gt 0 do
+        c := Rep(F_elements);
+
+        coset := {c * m : m in M};
+        new_values := coset;
+
+        while #new_values gt 0 do
+            ExtractRep(~new_values, ~r);
+            
+            rp := r^p;
+            if not rp in coset then
+                Include(~coset, rp);
+                Include(~new_values, rp);
+            end if;
+        end while;
+
+        Include(~coset_reps, Min(coset));
+        F_elements diff:= coset;
+    end while;
+
+    F_cosets[d] := coset_reps;
+end for;
+
 ExpSpace   := {s : s in Subsets(E,l) | #{cosets[e] : e in s} gt 1};
+
+IncompleteCoeffSpace := CartesianPower(S, l-2);
 
 generatedPlanarFunctions := [];
 
@@ -52,14 +99,15 @@ timeExpansion := Cputime();
 for exp in ExpSpace do
     e := [ei : ei in exp];
 
-    for c in CoeffSpace do
-        candidate := [Zero(F): x in [1..p^n]];
-        
-        for i in [1..l] do
-            candidate[e[i]+1] := c[i];
-        end for;
+    // Select the first exponent from the correct cyclotomic + multiplicative
+    // cosets representatives for e[1]. The others are all possible l-1 subsets of the coefficients.
+    for coefficients in CartesianProduct(F_cosets[GCD(e[1]-e[2], q-1)], IncompleteCoeffSpace) do
+        // First can always be 1, second can be one representative for each coset using M and p^i
+        candidate := x^e[1] + coefficients[1] * x^e[2];
 
-        candidate := R!candidate;
+        for i in [3..l] do
+            candidate +:= (coefficients[2])[i-2] * x^e[i];
+        end for;
 
         if fastIsPlanarDOPoly(candidate,FFs) then
             PrintFile(expansion_filename, Sprintf("%o,", candidate));
@@ -112,6 +160,27 @@ PrintFile(equivalence_filename, Sprintf("p := %o;\nn := %o;\n\nF<a> := GF(p^n);\
 x2_key := Sprintf("[ %o, %o ].NA", p^n, p^n);
 // No need to test for equivalence, it's all x^2
 Remove(~to_test_for_equivalence, x2_key);
+
+if n mod 4 eq 0 then
+    // It's all Dickson
+    dickson_key := Sprintf("[ %o, %o ].NA", p^(n div 4), p^(n div 2));
+
+    Remove(~to_test_for_equivalence, dickson_key);
+end if;
+
+if n mod 3 eq 0 then
+    // It's all Albert
+    albert_key := Sprintf("[ %o, %o ]", p^(n div 3), p^(n div 3));
+
+    for k in Keys(to_test_for_equivalence) do
+        if Substring(k, 1, #albert_key) eq albert_key then
+            Remove(~to_test_for_equivalence, k);
+        end if;
+    end for;
+end if;
+
+if n eq 10 then
+    
 
 for k->v in to_test_for_equivalence do
     PrintFile(equivalence_filename, Sprintf("to_test_for_equivalence[\"%o\"] := %o;\n", k, v));

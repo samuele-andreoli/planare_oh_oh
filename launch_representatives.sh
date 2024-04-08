@@ -14,6 +14,8 @@ SEARCH_CASES=(
         "P=3;N=6;M=2;L=4;"
         "P=3;N=6;M=2;L=5;"
         "P=3;N=6;M=2;L=6;"
+        "P=3;N=10;M=1;L=3"
+        "P=3;N=10;M=1;L=4"
 )
 
 for SEARCH_CASE in ${SEARCH_CASES[@]}
