@@ -179,9 +179,6 @@ if n mod 3 eq 0 then
     end for;
 end if;
 
-if n eq 10 then
-    
-
 for k->v in to_test_for_equivalence do
     PrintFile(equivalence_filename, Sprintf("to_test_for_equivalence[\"%o\"] := %o;\n", k, v));
 end for;
