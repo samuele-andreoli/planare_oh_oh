@@ -9,6 +9,7 @@ load "lib/planar.m";
 
 p := @P@;
 n := @N@;
+ms := @MS@;
 q := p^n;
 
 // Dimension of the subfield for the coefficients
@@ -30,6 +31,12 @@ F<a> := GF(p^n);
 R<x> := PolynomialRing(F);
 
 xf := x^f;
+
+// Subfields to not redo computations
+subfields := [];
+if #ms gt 0 then
+    subfields := [GF(p^m) : m in ms];
+end if;
 
 // Precomputation for fast planar functions test
 FFs:=getFFs(F);
@@ -92,7 +99,19 @@ for e in E do
             end if;
         end while;
 
-        Include(~coset_reps, Min(coset));
+        r := Min(coset);
+        for r1 in coset do
+            if #subfields gt 1 and r1 in subfields[2] then
+                r := r1;
+                continue;
+            end if;
+            if #subfields gt 0 and r1 in subfields[1] then
+                r := r1;
+                break;
+            end if;
+        end for;
+
+        Include(~coset_reps, r);
         F_elements diff:= coset;
     end while;
 
@@ -120,6 +139,29 @@ for exp in ExpSpace do
     // cosets representatives for e[1]. The others are all possible l-1 subsets of the coefficients.
     for coefficients in CartesianProduct(F_cosets[GCD(f-e[1], q-1)], IncompleteCoeffSpace) do
         candidate := xf;
+
+        is_in_subfield := false;
+        for s in subfields do
+            if coefficients[1] in s then
+                is_in_subfield := true;
+
+                for c in coefficients[2] do
+                    if not c in s then
+                        is_in_subfield := false;
+                        break;
+                    end if;
+                end for;
+            end if;
+
+            if is_in_subfield then
+                break;
+            end if;
+        end for;
+
+        if is_in_subfield then 
+            continue;
+        end if;
+
         candidate +:= coefficients[1] * x^e[1];
 
         for i in [2..l] do
