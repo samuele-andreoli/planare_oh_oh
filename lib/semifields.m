@@ -32,11 +32,6 @@ DOToSemifieldPoly:=function(f, e)
     f := R0!f;
     FE := [a^(#F)-a,b^(#F)-b];
 
-    // Fast evaluation of a linear polynomial and reduction by the field equations.
-    EvaluateLinMod := function(l, u)
-        return &+[&+[NormalForm(Evaluate(tl, tu), FE) : tl in Terms(l)] : tu in Terms(u)];
-    end function;
-
     // Fast evaluation of a multivariate linear polynomial and reduction by the field equations.
     MultiEvaluateLinMod := function(l, ul)
         return &+[&+[NormalForm(Evaluate(tl, ull), FE) : tl in Terms(l)] : ull in car<Terms(ul[1]),Terms(ul[2])>];
@@ -118,13 +113,9 @@ getNuclei:=function(f, e)
     starPsi := VandermondeInterpolation(R, [F!Evaluate(starE, a, bi) : bi in B], B);
     id := F!Evaluate(starE, a, e);
 
-    asterisk := function(u,v)
-        return MultiEvaluateLinMod(star, [EvaluateLinMod(starPsi,u), Evaluate(starPsi,v), id]);
-    end function;
-
     // Associativity equation
-    astrP := asterisk(a,b);
-    fl := asterisk(astrP,c);
+    astrP := MultiEvaluateLinMod(star, [Evaluate(starPsi,a), Evaluate(starPsi,b), id]);
+    fl := MultiEvaluateLinMod(star, [EvaluateLinMod(starPsi,astrP), Evaluate(starPsi,c), id]);
     fr := Evaluate(fl,[b,c,a]);
     g  := fl-fr;
 
