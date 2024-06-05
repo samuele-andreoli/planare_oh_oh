@@ -91,11 +91,25 @@ IncompleteCoeffSpace := CartesianPower(S, l-2);
 representatives := getRepresentatives(n);
 orbitsTable := getOrbitsTable(n);
 
-zp1TT, invzp1TT := get_tt_with_inv(representatives[21]);
-orbits1 := orbitsTable[representatives[21]];
+zp1 := representatives[12];
 
-zp2TT, invzp2TT := get_tt_with_inv(representatives[23]);
-orbits2 := orbitsTable[representatives[23]];
+zp1TT, invzp1TT := get_tt_with_inv(zp1);
+orbits1 := orbitsTable[zp1];
+
+zp2 := representatives[13];
+
+zp2TT, invzp2TT := get_tt_with_inv(zp2);
+orbits2 := orbitsTable[zp2];
+
+zp3 := representatives[14];
+
+zp3TT, invzp3TT := get_tt_with_inv(zp3);
+orbits3 := orbitsTable[zp3];
+
+zp4 := representatives[15];
+
+zp4TT, invzp4TT := get_tt_with_inv(zp4);
+orbits4 := orbitsTable[zp4];
 
 print "Start expansion";
 
@@ -120,18 +134,26 @@ for exp in ExpSpace do
 
         N:=Nuclei(candidate, One(F));
 
-        if N ne [3,9] then
+        if N ne [3,3] then
             continue;
         end if;
 
         fTT, invfTT := get_tt_with_inv(candidate);
 
         if dupeq_with_l2_representatives_tt(zp1TT, invzp1TT, fTT, invfTT, orbits1) then
-            printf "repr 1 %o\n", candidate;
+            printf "repr %o: %o\n", zp1, candidate;
             continue;
         end if;
         if dupeq_with_l2_representatives_tt(zp2TT, invzp2TT, fTT, invfTT, orbits2) then
-            printf "repr 2 %o\n", candidate;
+            printf "repr %o: %o\n", zp2, candidate;
+            continue;
+        end if;
+        if dupeq_with_l2_representatives_tt(zp3TT, invzp3TT, fTT, invfTT, orbits3) then
+            printf "repr %o: %o\n", zp3, candidate;
+            continue;
+        end if;
+        if dupeq_with_l2_representatives_tt(zp4TT, invzp4TT, fTT, invfTT, orbits4) then
+            printf "repr %o: %o\n", zp4, candidate;
             continue;
         end if;
 
