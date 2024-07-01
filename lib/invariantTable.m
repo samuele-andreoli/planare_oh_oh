@@ -4,7 +4,6 @@ load "lib/semifields.m";
 load "lib/planar.m";
 load "lib/dupeq.m";
 
-
 computeInvariantTable := procedure(n)
     FuctionList:=getRepresentatives(n);
     R<x>:=Parent(FuctionList[1]);
@@ -127,6 +126,28 @@ getInvariantTable:=function(n)
             x^1094,
             x^14,
             x^122
+        };
+    elif n eq 9 then
+        invariantTable["[ 19683, 19683 ].NA"]:={
+            x^2
+        };
+        invariantTable["[ 3, 3 ].NA"]:={
+            x^4,
+            x^10,
+            x^82,
+            x^10 +x^6+2*x^2,
+            x^10 +2*x^6+2*x^2
+        };
+        invariantTable["[ 27, 27 ].NA"]:={
+            x^28
+        };
+        invariantTable["[ 3, 27 ].NA"]:={
+            x^486 + x^162 + 2*x^84 + 2*x^18 + x^2,
+            x^756 + x^486 + x^162 + x^6 + x^2
+        };
+        invariantTable["[ 0, 0 ].NA"]:={
+            x^122,
+            x^1094
         };
     elif n eq 10 then
         invariantTable["[ 59049, 59049 ].NA"]:={
