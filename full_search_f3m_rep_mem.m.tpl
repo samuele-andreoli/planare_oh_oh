@@ -130,9 +130,12 @@ for exp in ExpSpace do
             continue;
         end if;
 
-        print "b";
-
-        N:=Nuclei(candidate, One(F));
+        try 
+            N:=Nuclei(candidate, One(F));
+        catch e
+            // Just test it with the equivalence
+            N := [3,3];
+        end try;
 
         if N ne [3,3] then
             continue;
