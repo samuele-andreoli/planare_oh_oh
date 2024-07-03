@@ -1,4 +1,4 @@
-load "lib/ccz_equivalence.m";
+load "lib/cczEquivalence.m";
 load "lib/invariantTable.m";
 load "lib/semifields.m";
 load "lib/dupeq.m";

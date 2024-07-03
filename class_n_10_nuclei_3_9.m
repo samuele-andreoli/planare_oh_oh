@@ -1,6 +1,6 @@
 BH_i := 2; // to 2;
 
-load "lib/FamiliesPlanar.m";
+load "lib/familiesPlanar.m";
 load "lib/dupeq.m";
 
 F<u> := GF(3^10);

@@ -1,7 +1,9 @@
+load "lib/cczEquivalence.m";
 load "lib/invariantTable.m";
+load "lib/representatives.m";
+load "lib/semifields.m";
+load "lib/planar.m";
 load "lib/dupeq.m";
-
-/* Search parameters. Modify here */
 
 p := @P@;
 n := @N@;
@@ -13,13 +15,15 @@ l := @L@;
 m := @M@;
 assert n mod m eq 0;
 
-/* End of user modifiabile section */
-
 filename := Sprintf("p%o_n%o_l%o_m%o", p, n, l, m);
 SetLogFile(Sprintf("logs/%o", filename) : Overwrite := true);
 
 F<a> := GF(p^n);
 R<x> := PolynomialRing(F);
+
+// Default targets are all non monomials. Refining the search is recommended.
+targets := getRepresentatives(n);
+targets := [r : r in getRepresentatives(n) | #Terms(r) gt 1];
 
 // Precomputation for fast planar functions test
 FFs:=getFFs(F);
@@ -88,30 +92,23 @@ ExpSpace   := {s : s in Subsets(E,l) | #{cosets[e] : e in s} gt 1};
 
 IncompleteCoeffSpace := CartesianPower(S, l-2);
 
-representatives := getRepresentatives(n);
+invariantTable := getInvariantTable(n);
+invariantTableTT := AssociativeArray();
+
+for key -> values in invariantTable do
+    TTs := [];
+    for r in values do
+        tt, invtt := get_tt_with_inv(r);
+        Append(~TTs, <r, tt, invtt>);
+    end for;
+
+    invariantTableTT[key] := TTs;
+end for;
+
 orbitsTable := getOrbitsTable(n);
 
-zp1 := representatives[12];
-
-zp1TT, invzp1TT := get_tt_with_inv(zp1);
-orbits1 := orbitsTable[zp1];
-
-zp2 := representatives[13];
-
-zp2TT, invzp2TT := get_tt_with_inv(zp2);
-orbits2 := orbitsTable[zp2];
-
-zp3 := representatives[14];
-
-zp3TT, invzp3TT := get_tt_with_inv(zp3);
-orbits3 := orbitsTable[zp3];
-
-zp4 := representatives[15];
-
-zp4TT, invzp4TT := get_tt_with_inv(zp4);
-orbits4 := orbitsTable[zp4];
-
 print "Start expansion";
+t := Cputime();
 
 for exp in ExpSpace do
     e := [ei : ei in exp];
@@ -137,32 +134,76 @@ for exp in ExpSpace do
             N := [3,3];
         end try;
 
-        if N ne [3,3] then
+        order := "NA";
+        if (n lt 6) or ((n eq 6) and not N in {[p^n,p^n],[p^2,p^2]}) then
+            order := AutomoriphismGroupOrderFromFunction(candidate);
+        end if;
+
+        key := Sprintf("%o.%o", N, order);
+
+        /* Use theoretical results on nuclei to weed out some of the expansions, when we already know good representatives */
+        x2_key := Sprintf("[ %o, %o ].NA", p^n, p^n);
+        if key eq x2_key then
             continue;
+        end if;
+
+        if n mod 4 eq 0 then
+            // It's all Dickson
+            dickson_key := Sprintf("[ %o, %o ].NA", p^(n div 4), p^(n div 2));
+
+            if key eq dickson_key then
+                continue;
+            end if;
+        end if;
+
+        if n mod 3 eq 0 then
+            // It's all Albert
+            albert_key := Sprintf("[ %o, %o ]", p^(n div 3), p^(n div 3));
+
+            if Substring(key, 1, #albert_key) eq albert_key then
+                continue;
+            end if;
         end if;
 
         fTT, invfTT := get_tt_with_inv(candidate);
 
-        if dupeq_with_l2_representatives_tt(zp1TT, invzp1TT, fTT, invfTT, orbits1) then
-            printf "repr %o: %o\n", zp1, candidate;
-            continue;
-        end if;
-        if dupeq_with_l2_representatives_tt(zp2TT, invzp2TT, fTT, invfTT, orbits2) then
-            printf "repr %o: %o\n", zp2, candidate;
-            continue;
-        end if;
-        if dupeq_with_l2_representatives_tt(zp3TT, invzp3TT, fTT, invfTT, orbits3) then
-            printf "repr %o: %o\n", zp3, candidate;
-            continue;
-        end if;
-        if dupeq_with_l2_representatives_tt(zp4TT, invzp4TT, fTT, invfTT, orbits4) then
-            printf "repr %o: %o\n", zp4, candidate;
-            continue;
+        // We should have already found this in the expansion searches, but out of caution...
+        if not key in Keys(invariantTableTT) then
+            printf "unknown combination of invariants %o for %o\n", key, candidate;
+            Append(~invariantTableTT[key], <candidate, fTT, invfTT>);
         end if;
 
-        printf("done 1\n");
+        representatives := invariantTableTT[key];
+        inequiv := true;
+
+        for r in representatives do
+            if r[1] in Keys(orbitsTable) then
+                orbits  := orbitsTable[r[1]];
+                if dupeq_with_l2_representatives_tt(r[2], r[3], fTT, invfTT, orbits) then
+                    inequiv := false;
+                    break;
+                end if;
+            else
+                if dupeq_tt(r[2], r[3], fTT, invfTT) then
+                    inequiv := false;
+                    break;
+                end if;
+            end if;
+        end for;
+
+        if inequiv then
+            // We should have already found this in the expansion searches, but out of caution...
+            printf "inequivalent function with invariants %o: f=%o\n\n", key, candidate;
+            Append(~invariantTableTT[key], <candidate, fTT, invfTT>);
+        elif r in targets then
+            printf "Representative found for target %o: %o\n", r, candidate;
+        end if;
     end for;
 end for;
+
+printf "\n";
+
+Cputime(t);
 
 p;
 n;
