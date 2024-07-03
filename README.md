@@ -14,15 +14,15 @@ The main project directory contains the following relevant files for some of the
 * `function_splits.m`: find splits for every representative, if they exist.
 * `compute_invariants.m`: populate the table of invariants for all functions representatives.
 * `compute_orbits.m`: find the orbits. Note that not restricting the dimension and range will result in a very long computation, likely to not finish. Edit the header of the file to restrict the search.
-* `classification.m`: This will run a classiication of the known families for a particular n (by default n=8), including trying to split isotopy classes into strong isotopy classes, and computing intersections of the families.
-* `class_n_10_*.m`: These are tailored files for parts of the classification in dimesnion 10 that were too expensive to carry out as we did for the other dimensions.
+* `classification.m`: This will run a classification of the known families for a particular n (by default n=8), including trying to split isotopy classes into strong isotopy classes, and computing intersections of the families.
+* `class_n_10_*.m`: These are tailored files for parts of the classification in dimension 10 that were too expensive to carry out as we did for the other dimensions.
 
 ## Detached run for expansion search and representatives search
 
 The two scripts `launch_searches.sh` and `launch_representatives.sh` allow to specify sets of parameters for a number of searches,
 and then launch them in detached screens to carry out the searches in parallel.
 
-The execution is logged in the `logs` subdirectory. 
+The execution is logged in the `logs` sub-directory. 
 
 ### Detailed report v.s. memory efficiency
 
