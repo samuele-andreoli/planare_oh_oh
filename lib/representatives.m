@@ -1,4 +1,3 @@
-//The classification in n=8 could be incomplete
 getRepresentatives:=function(n)
     F<a>:=GF(3^n);
     R<x>:=PolynomialRing(F);
@@ -78,7 +77,9 @@ getRepresentatives:=function(n)
             x^122,
             x^1094,
             x^10 +x^6+2*x^2,
-            x^10 +2*x^6+2*x^2
+            x^10 +2*x^6+2*x^2,
+            x^486 + x^162 + 2*x^84 + 2*x^18 + x^2,
+            x^756 + x^486 + x^162 + x^6 + x^2
         ];
     elif n eq 10 then
         return [
@@ -93,10 +94,10 @@ getRepresentatives:=function(n)
             x^13122 + 2*x^6588 + x^244 + x^2,
             a^44286 * x^13122 + a^44286 * x^6588 + x^4374 + x^2196 + x^486 + x^244 + a^44286 * x^54 + x^18,
             x^2430 + 2*x^2188 + a^14762*x^1458 + a^14762*x^732 + x^486 + 2*x^252 + x^244 + x^10 + a^14762 * x^6,
-            x^2916 + 2*x^2190 + x^972 + 2*x^738 + a^14762*x^730 + a^14762*x^486 + a^44286*x^246 + a^22143*x^244 + x^12 + x^4 + x^2,
-            x^7290 + 2*x^6564 + x^2430 + x^2188 + 2*x^756 + 2*x^486 + x^252 + x^30 + x^10 + x^2,
+            2*x^2916 + x^738 + x^12,
+            x^21870 + x^19692 + x^2430 + 2*x^252,
             x^8748 + 2*x^6570 + 2*x^2214 + x^972 + a^14762*x^730 + a^14762*x^486 + a^44286*x^246 + a^22143*x^244 + x^36 + x^4 + x^2,
-            x^21870 + 2*x^19692 + x^2430 + 2*x^2268 + x^2188 + 2*x^486 + x^252 + x^90 + x^10+ x^2,
+            x^21870 + x^19692 + 2*x^2268,
             x^2430 + x^244 + a^44286 + x^10,
             x^6562 + x^486 + 2*x^270 + x^2,
             x^19926 + x^244 + a^44286 * x^82,
@@ -124,30 +125,3 @@ getRepresentatives:=function(n)
     end if;
     return [];
 end function;
-
-PolyToLatex:=function(f)
-    R:=Parent(f);
-    F<a>:=BaseRing(R);
-    T:=Reverse(Terms(f));
-    C:=Coefficients(f);
-    TermToLatex:=function(t)
-        e:=Exponents(t)[1];
-        c:=C[e+1];
-        if c in PrimeField(F) then
-            if IsOne(c) then
-                return Sprintf("x^{%o}",e);
-            else
-                return Sprintf("%o x^{%o}",c,e);
-            end if;
-        else
-            return Sprintf("\\alpha^{%o} x^{%o}",Log(a,c),e);
-        end if;
-    end function;
-    myStr:="";
-    for i:=1 to (#T-1) do
-        myStr cat:=(TermToLatex(T[i]) cat " + ");
-    end for;
-    myStr cat:=TermToLatex(T[#T]);
-    return myStr;
-end function;
-

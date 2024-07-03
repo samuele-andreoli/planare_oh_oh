@@ -1,4 +1,5 @@
-load "lib/FamiliesPlanar.m";
+load "lib/familiesPlanar.m";
+load "lib/semifields.m"
 load "lib/dupeq.m";
 
 p := 3;
@@ -16,62 +17,6 @@ zp1TT, invzp1TT := get_tt_with_inv(ZP_cop0[1]);
 zp2TT, invzp2TT := get_tt_with_inv(ZP_cop0[2]);
 
 orbits := { 1, a^17, a, a^2, a^19, a^20, a^4, a^5, a^7, a^8, a^10, a^61, a^11, a^16 };
-
-// Re-generalize to find better representative
-findBetterRepresentatives := procedure(fTT, invfTT, gTT, invgTT, orbitsf, orbitsg)
-    m := n div 2;
-    Fq := GF(p^m);
-
-    OpTTs := [];
-    for k:=1 to (m div 2) do
-        if IsEven(m div GCD(m,k)) then
-            continue;
-        end if;
-
-        OpTT := AssociativeArray();
-        for a in Fq do
-            // Op := 2*y^(p^k+1)
-            OpTT[a] := 2*a^(p^k+1);
-        end for;
-    end for;
-
-    for ns in F do
-        if IsZero(ns) or IsSquare(ns) then
-            continue;
-        end if;
-
-        Op1TT := AssociativeArray();
-        for a in Fq do
-            // Op1:=ns*y;
-            Op1TT[a] := ns * a;
-        end for;
-
-        for OpTT in OpTTs do
-            candTT := getFunFromSpecialSemifieldTT_zero_op2(R,OpTT,Op1TT);
-
-            invcandTT := AssociativeArray();
-            for x in F do
-                if IsDefined(invcandTT, candTT[x]) then
-                    continue;
-                end if;
-
-                invcandTT[candTT[x]] := Min({x, -x});
-            end for;
-
-            success, l1, l2 := dupeq_with_l2_representatives_tt(fTT, invfTT, candTT, invcandTT, orbitsf);
-            if success then
-                printf "Found candindate for ZP1 %o\n", Interpolation([x : x in F], [candTT[x] : x in F]);
-                continue;
-            end if;
-
-            success, l1, l2 := dupeq_with_l2_representatives_tt(gTT, invgTT, candTT, invcandTT, orbitsg);
-            if success then
-                printf "Found candindate for ZP2 %o\n", Interpolation([x : x in F], [candTT[x] : x in F]);
-                continue;
-            end if;
-        end for;
-    end for;
-end procedure;
 
 SetLogFile("logs/zp_split.txt": Overwrite := true);
 
@@ -218,17 +163,5 @@ for x in F do
     gTT[-x] := gTT[x];
     invgTT[gTT[x]] := Min({x,-x});
 end for;
-
-/* Compute orbits, then use precomputed */
-// zp_split := Interpolation([x : x in F],[gTT[x] : x in F]);
-// tp := trivialPartition(zp_split);
-// orbits := partitionByL2tt(gTT, invgTT, tp);
-// {* #o : o in orbits*};
-// orbitsg := {Min(o) : o in orbits};
-orbitsg := { 1, a^17, a, a^2, a^3, a^4, a^5, a^26, a^10, a^30, a^14, a^32, a^16 };
-
-print "Find better representatives";
-
-findBetterRepresentatives(fTT, invfTT, gTT, invgTT, orbitsf, orbitsg);
 
 UnsetLogFile();

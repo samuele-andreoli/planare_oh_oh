@@ -1,42 +1,3 @@
-load "lib/representatives.m";
-load "lib/ccz_equivalence.m";
-load "lib/semifields.m";
-load "lib/planar.m";
-load "lib/dupeq.m";
-
-
-computeInvariantTable := procedure(n)
-    FuctionList:=getRepresentatives(n);
-    R<x>:=Parent(FuctionList[1]);
-    F<a>:=BaseRing(R);
-
-    invariantTable := AssociativeArray();
-
-    for f in FuctionList do
-        N:=[0,0];
-        if isDOPolynomial(f) then
-            N:=Nuclei(f, One(F));
-        end if;
-
-        order := "NA";
-        if ((n eq 6) and not N in {[3^6,3^6],[3^(2),3^(2)]}) then
-            order := AutomoriphismGroupOrderFromFunction(f);
-        end if;
-
-        key := Sprintf("%o.%o", N, order);
-
-        if not key in Keys(invariantTable) then
-            invariantTable[key] := {f};
-        else
-            Include(~invariantTable[key],f);
-        end if;
-    end for;
-
-    for key in Keys(invariantTable) do
-        printf "invariantTable[\"%o\"]:=%o;\n\n",key,invariantTable[key];
-    end for;
-end procedure;
-
 getInvariantTable:=function(n)
     F<a>:=GF(3^n);
     R<x>:=PolynomialRing(F);
@@ -128,6 +89,28 @@ getInvariantTable:=function(n)
             x^14,
             x^122
         };
+    elif n eq 9 then
+        invariantTable["[ 19683, 19683 ].NA"]:={
+            x^2
+        };
+        invariantTable["[ 3, 3 ].NA"]:={
+            x^4,
+            x^10,
+            x^82,
+            x^10 +x^6+2*x^2,
+            x^10 +2*x^6+2*x^2
+        };
+        invariantTable["[ 27, 27 ].NA"]:={
+            x^28
+        };
+        invariantTable["[ 3, 27 ].NA"]:={
+            x^486 + x^162 + 2*x^84 + 2*x^18 + x^2,
+            x^756 + x^486 + x^162 + x^6 + x^2
+        };
+        invariantTable["[ 0, 0 ].NA"]:={
+            x^122,
+            x^1094
+        };
     elif n eq 10 then
         invariantTable["[ 59049, 59049 ].NA"]:={
             x^2
@@ -173,31 +156,6 @@ getInvariantTable:=function(n)
 
     return invariantTable;
 end function;
-
-computeOrbitsTable := procedure()
-    printf "getOrbitsTable := function(n)";
-    printf "\tF<a> := GF(3^n);\n\tR<x> := PolynomialRing(F);\n";
-    printf "\torbitsTable := AssociativeArray();\n\n";
-    printf "\torbitsInvariantTable := AssociativeArray();\n\n";
-
-    for n := 3 to 8 do
-        printf "\tif n eq %o then\n", n;
-        
-        FunctionList:=getRepresentatives(n);
-        R<x>:=Parent(FunctionList[1]);
-        F<a>:=BaseRing(R);
-
-        for f in FunctionList do
-            orbits := partitionByL2(f);
-            printf "\t\torbitsTable[%o] := %o;\n", f, {Min(o) : o in orbits};
-            printf "\t\torbitsInvariantTable[%o] := \"%o\";\n", f, {* #o : o in orbits *};
-        end for;
-
-        printf "\tend if;\n";
-    end for;
-    printf "\n\treturn orbitsTable;\n";
-    printf "end function;\n";
-end procedure;
 
 getOrbitsTable := function(n)
     F<a> := GF(3^n);
@@ -283,14 +241,14 @@ getOrbitsTable := function(n)
         orbitsTable[x^122] := {One(F)};
         orbitsTable[x^1094] := {One(F)};
         // TODO orbits 10.7 CG
-        orbitsTable[x^1458 + 2*x^732 + x^244 + x^2] := [ One(F), a, a^4, a^5, a^7, a^10, a^11, a^14, a^16, a^19, a^20, a^22, a^26, a^31, a^34, a^38, a^40, a^41, a^49, a^55, a^65, a^76, a^82, a^91, a^104, a^122, a^133 ];
-        orbitsTable[x^13122 + 2*x^6588 + x^244 + x^2] := [ One(F), a, a^2, a^4, a^7, a^8, a^10, a^13, a^14, a^16, a^19, a^20, a^23, a^25, a^26, a^32, a^34, a^38, a^40, a^41, a^44, a^55, a^61, a^86, a^122, a^125, a^188 ];
+        orbitsTable[x^1458 + 2*x^732 + x^244 + x^2] := {One(F), a, a^4, a^5, a^7, a^10, a^11, a^14, a^16, a^19, a^20, a^22, a^26, a^31, a^34, a^38, a^40, a^41, a^49, a^55, a^65, a^76, a^82, a^91, a^104, a^122, a^133};
+        orbitsTable[x^13122 + 2*x^6588 + x^244 + x^2] := {One(F), a, a^2, a^4, a^7, a^8, a^10, a^13, a^14, a^16, a^19, a^20, a^23, a^25, a^26, a^32, a^34, a^38, a^40, a^41, a^44, a^55, a^61, a^86, a^122, a^125, a^188};
         // TODO orbits 10.10 PW
         // TODO orbits 10.11 G
-        orbitsTable[x^2916 + 2*x^2190 + x^972 + 2*x^738 + a^14762 * x^730 + a^14762 * x^486 + a^44286 * x^246 + a^22143 * x^244 + x^12 + x^4 + x^2] := { One(F), a, a^2, a^3, a^62, a^4, a^34, a^6, a^7, a^8, a^183, a^68, a^10, a^39, a^69, a^11, a^12, a^14, a^15, a^74, a^19, a^21, a^22, a^23, a^53, a^84, a^28 };
-        orbitsTable[x^7290 + 2*x^6564 + x^2430 + x^2188 + 2*x^756 + 2*x^486 + x^252 + x^30 + x^10 + x^2] := { One(F), a, a^4, a^5, a^7, a^10, a^11, a^14, a^16, a^19, a^20, a^22, a^26, a^31, a^34, a^38, a^40, a^41, a^49, a^55, a^65, a^76, a^82, a^91, a^104, a^122, a^133 };
-        orbitsTable[x^8748 + 2 * x^6570 + 2 * x^2214 + x^972 + a^14762 * x^730 + a^14762 * x^486 + a^44286 * x^246 + a^22143 * x^244 + x^36 + x^4 + x^2] := { One(F), a^43, a, a^2, a^3, a^4, a^5, a^48, a^6, a^7, a^8, a^53, a^183, a^11, a^16, a^192, a^20, a^64, a^21, a^23, a^28, a^29, a^31, a^34, a^79, a^38, a^42 };
-        orbitsTable[x^21870 + 2*x^19692 + x^2430 + 2*x^2268 + x^2188 + 2*x^486 + x^252 + x^90 + x^10+ x^2] := { One(F), a, a^2, a^4, a^5, a^8, a^10, a^11, a^14, a^16, a^19, a^22, a^23, a^25, a^29, a^34, a^37, a^43, a^55, a^56, a^67, a^70, a^79, a^109, a^122, a^125, a^164 };
+        orbitsTable[2*x^2916 + x^738 + x^12] := {One(F), a, a^2, a^4, a^5, a^7, a^8, a^10, a^11, a^13, a^14, a^16, a^17, a^19, a^20, a^22, a^23, a^31, a^32, a^34, a^38, a^40, a^41, a^43, a^47, a^61, a^122};
+        orbitsTable[x^21870 + x^19692 + x^2430 + 2*x^252] := {One(F), a, a^2, a^4, a^7, a^8, a^10, a^13, a^14, a^16, a^19, a^20, a^23, a^25, a^26, a^32, a^34, a^38, a^40, a^41, a^44, a^55, a^61, a^86, a^122, a^125, a^188};
+        orbitsTable[x^8748 + 2 * x^6570 + 2 * x^2214 + x^972 + a^14762 * x^730 + a^14762 * x^486 + a^44286 * x^246 + a^22143 * x^244 + x^36 + x^4 + x^2] := {One(F), a^43, a, a^2, a^3, a^4, a^5, a^48, a^6, a^7, a^8, a^53, a^183, a^11, a^16, a^192, a^20, a^64, a^21, a^23, a^28, a^29, a^31, a^34, a^79, a^38, a^42};
+        orbitsTable[x^21870 + x^19692 + 2*x^2268] := {One(F), a, a^2, a^4,  a^5, a^7, a^8, a^10, a^11, a^13, a^14, a^16, a^17, a^19, a^20, a^22, a^23, a^31, a^32, a^34, a^38, a^40, a^41, a^43, a^47, a^61, a^122};
         orbitsTable[x^2430 + x^244 + a^44286*x^10] := { One(F), a, a^2, a^3, a^4, a^5, a^6, a^8, a^10, a^11, a^12, a^13, a^17 };
         orbitsTable[x^6562 + x^486 + 2*x^270 + x^2] := { One(F), a^17, a, a^2, a^19, a^20, a^4, a^5, a^7, a^8, a^10, a^61, a^11, a^16 };
         orbitsTable[x^19926 + x^244 + a^44286*x^82] := { One(F), a, a^2, a^3, a^4, a^5, a^6, a^8, a^10, a^11, a^12, a^13, a^17 };

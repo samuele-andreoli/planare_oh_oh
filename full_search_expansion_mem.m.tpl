@@ -2,10 +2,7 @@ load "lib/cczEquivalence.m";
 load "lib/invariantTable.m";
 load "lib/semifields.m";
 load "lib/dupeq.m";
-
 load "lib/planar.m";
-
-/* Expansion search parameters. Modify here */
 
 p := @P@;
 n := @N@;
@@ -24,7 +21,7 @@ f := @F@;
 
 /* End of user modifiabile section */
 
-filename := Sprintf("p%o_n%o_x%o_l%o_m%o", p, n, f, l, m);
+filename := Sprintf("p%o_n%o_x%o_l%o_m%o_mem", p, n, f, l, m);
 SetLogFile(Sprintf("logs/%o", filename) : Overwrite := true);
 
 F<a> := GF(p^n);
@@ -119,10 +116,24 @@ for e in E do
 end for;
 
 
-generatedPlanarFunctions := [];
+// Precompute representatives TTs
+print "Precomputing TTs";
 
-expansion_filename := Sprintf("expansions/%o", filename);
-PrintFile(expansion_filename, Sprintf("p := %o;\nn := %o;\n\nF<a> := GF(p^n);\nR<x> := PolynomialRing(F);\n\ngeneratedPlanarFunctions := [", p, n) : Overwrite := true);
+invariantTable := getInvariantTable(n);
+invariantTableTT := AssociativeArray();
+
+
+for key -> values in invariantTable do
+    TTs := [];
+    for r in values do
+        tt, invtt := get_tt_with_inv(r);
+        Append(~TTs, <r, tt, invtt>);
+    end for;
+
+    invariantTableTT[key] := TTs;
+end for;
+
+orbitsTable := getOrbitsTable(n);
 
 print "Start expansion";
 timeExpansion := Cputime();
@@ -168,131 +179,94 @@ for exp in ExpSpace do
             candidate +:= (coefficients[2])[i-1] * x^e[i];
         end for;
 
-        if fastIsPlanarDOPoly(candidate,FFs) then
-            PrintFile(expansion_filename, Sprintf("%o,", candidate));
-            Append(~generatedPlanarFunctions, candidate);
+        if not fastIsPlanarDOPoly(candidate,FFs) then
+            continue;
+        end if;
+
+        N:=[0,0];
+        if isDOPolynomial(candidate) then
+            N:=Nuclei(candidate, One(F));
+        end if;
+
+        order := "NA";
+        if (n lt 6) or ((n eq 6) and not N in {[p^n,p^n],[p^2,p^2]}) then
+            order := AutomoriphismGroupOrderFromFunction(candidate);
+        end if;
+
+        key := Sprintf("%o.%o", N, order);
+
+        if not key in Keys(invariantTableTT) then
+            printf "unknown combination of invariants %o for f=%o\n\n", key, candidate;
+            fTT, invfTT := get_tt_with_inv(candidate);
+            invariantTableTT[key] := [<candidate, fTT, invfTT>];
+            continue;
+        end if;
+
+        /* Use theoretical results on nuclei to weed out some of the expansions */
+        x2_key := Sprintf("[ %o, %o ].NA", p^n, p^n);
+        if key eq x2_key then
+            continue;
+        end if;
+
+        if n mod 4 eq 0 then
+            // It's all Dickson
+            dickson_key := Sprintf("[ %o, %o ].NA", p^(n div 4), p^(n div 2));
+
+            if key eq dickson_key then
+                continue;
+            end if;
+        end if;
+
+        if n mod 3 eq 0 then
+            // It's all Albert
+            albert_key := Sprintf("[ %o, %o ]", p^(n div 3), p^(n div 3));
+
+            if Substring(key, 1, #albert_key) eq albert_key then
+                continue;
+            end if;
+        end if;
+
+        if n in {4,6,8,10} then
+            // I know that nucleus
+            nuclei_key := Sprintf("[ %o, %o ]", p, p^(n div 2));
+
+            if Substring(key, 1, #nuclei_key) eq nuclei_key then
+                continue;
+            end if;
+        end if;
+
+        // We have made sure they are in invariant table
+        representatives := invariantTableTT[key];
+        
+        fTT, invfTT := get_tt_with_inv(candidate);
+
+        inequiv := true;
+
+        for r in representatives do
+            if r[1] in Keys(orbitsTable) then
+                orbits  := orbitsTable[r[1]];
+                if dupeq_with_l2_representatives_tt(r[2], r[3], fTT, invfTT, orbits) then
+                    inequiv := false;
+                    break;
+                end if;
+            else
+                if dupeq_tt(r[2], r[3], fTT, invfTT) then
+                    inequiv := false;
+                    break;
+                end if;
+            end if;
+        end for;
+
+        if inequiv then
+            printf "inequivalent function with invariants %o: f=%o\n\n", key, candidate;
+            Append(~invariantTableTT[key], <candidate, fTT, invfTT>);
         end if;
     end for;
-end for;
-
-PrintFile(expansion_filename,"];");
-
-printf "End expansion %o\n\n", Cputime(timeExpansion);
-
-// Classification using invariants
-invariantTable := getInvariantTable(n);
-
-print "Start invariant test";
-timeInvariant := Cputime();
-
-to_test_for_equivalence := AssociativeArray();
-for f in generatedPlanarFunctions do
-    N:=[0,0];
-    if isDOPolynomial(f) then
-        N:=Nuclei(f, One(F));
-    end if;
-
-    order := "NA";
-    if (n lt 6) or ((n eq 6) and not N in {[p^n,p^n],[p^2,p^2]}) then
-        order := AutomoriphismGroupOrderFromFunction(f);
-    end if;
-
-    key := Sprintf("%o.%o", N, order);
-
-    if not key in Keys(invariantTable) then
-        printf "unknown combination of invariants %o for f=%o\n\n", key, f;
-        invariantTable[key] := [f];
-    end if;
-
-    if not key in Keys(to_test_for_equivalence) then
-        to_test_for_equivalence[key] := [];
-    end if;
-
-    Append(~to_test_for_equivalence[key], f);
-end for;
-
-printf "End invariant test %o\n\n", Cputime(timeInvariant);
-
-equivalence_filename := Sprintf("equivalence_test/%o", filename);
-PrintFile(equivalence_filename, Sprintf("p := %o;\nn := %o;\n\nF<a> := GF(p^n);\nR<x> := PolynomialRing(F);\n\nto_test_for_equivalence := AssociativeArray();", p, n) : Overwrite:= true);
-
-/* Use theoretical results on nuclei to weed out some of the expansions */
-
-x2_key := Sprintf("[ %o, %o ].NA", p^n, p^n);
-// No need to test for equivalence, it's all x^2
-Remove(~to_test_for_equivalence, x2_key);
-
-if n mod 4 eq 0 then
-    // It's all Dickson
-    dickson_key := Sprintf("[ %o, %o ].NA", p^(n div 4), p^(n div 2));
-
-    Remove(~to_test_for_equivalence, dickson_key);
-end if;
-
-if n mod 3 eq 0 then
-    // It's all Albert
-    albert_key := Sprintf("[ %o, %o ]", p^(n div 3), p^(n div 3));
-
-    for k in Keys(to_test_for_equivalence) do
-        if Substring(k, 1, #albert_key) eq albert_key then
-            Remove(~to_test_for_equivalence, k);
-        end if;
-    end for;
-end if;
-
-if n in {4,6,8,10} then
-    // I know that nucleus
-    nuclei_key := Sprintf("[ %o, %o ]", p, p^(n div 2));
-
-    for k in Keys(to_test_for_equivalence) do
-        if Substring(k, 1, #nuclei_key) eq nuclei_key then
-            Remove(~to_test_for_equivalence, k);
-        end if;
-    end for;
-end if;
-
-for k->v in to_test_for_equivalence do
-    PrintFile(equivalence_filename, Sprintf("to_test_for_equivalence[\"%o\"] := %o;\n", k, v));
-end for;
-
-/* Classification using dupeq */
-orbitsTable := getOrbitsTable(n);
-
-print "Start equivalence test";
-timeEquivalence := Cputime();
-
-inequivalent_functions := AssociativeArray();
-for k->v in to_test_for_equivalence do
-    // We have made sure they are in invariant table
-    representatives := invariantTable[k];
-
-    inequiv := v;
-    for r in representatives do
-        if r in Keys(orbitsTable) then
-            orbits := orbitsTable[r];
-            inequiv := [f : f in inequiv | not dupeq_with_l2_representatives(r,f,orbits)];
-        else
-            // If we do not have he orbit there is a reson :)
-            inequiv := [f : f in inequiv | not dupeq(r,f)];
-        end if;
-    end for;
-
-    if #inequiv gt 0 then
-        inequivalent_functions[k] := inequiv;
-    end if;
-end for;
-
-printf "End equivalence test %o\n\n", Cputime(timeEquivalence);
-
-inequivalent_filename := Sprintf("inequivalent/%o", filename);
-
-PrintFile(inequivalent_filename, Sprintf("p := %o;\nn := %o;\n\nF<a> := GF(p^n);\nR<x> := PolynomialRing(F);\n\ninequivalent_functions := AssociativeArray();", p, n) : Overwrite:= true);
-
-for k->v in inequivalent_functions do
-    PrintFile(inequivalent_filename, Sprintf("inequivalent_functions[\"%o\"] := %o;\n", k, v));
 end for;
 
 printf "\n";
+
+Cputime(timeExpansion);
 
 p;
 n;

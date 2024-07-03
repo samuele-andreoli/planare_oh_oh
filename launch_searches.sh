@@ -1,20 +1,26 @@
-INFILE=full_search_expansion.m.tpl
+INFILE=full_search_expansion_mem.m.tpl
 SCRATCH="_scratch_file"
 OUTFILE_NAME=full_search_expansion
 
 SEARCH_CASES=(
-        "P=3;N=6;M=1;L=5;F=2"
-        # "P=3;N=6;M=6;L=3;F=2;MS='[2,3]'"
-        # "P=3;N=6;M=6;L=3;F=10;MS='[2,3]'"
-        # "P=3;N=6;M=3;L=4;F=10;"
-        # "P=3;N=6;M=2;L=5;F=10;MS='[1]'"
-        # "P=3;N=6;M=3;L=5;F=10;MS='[1]'"
-        # "P=3;N=8;M=8;L=2;F=2;MS='[4]'"
-        # "P=3;N=8;M=8;L=2;F=4;MS='[4]'"
-        # "P=3;N=8;M=2;L=4;F=2;"
-        # "P=3;N=8;M=1;L=5;F=2;"
-        # "P=3;N=8;M=1;L=5;F=10;"
-        # "P=3;N=8;M=1;L=5;F=28;"
+        "P=3;N=9;M=1;L=2;F=2;"
+        "P=3;N=9;M=1;L=3;F=2;"
+        "P=3;N=9;M=1;L=4;F=2;"
+        "P=3;N=9;M=1;L=2;F=4;"
+        "P=3;N=9;M=1;L=3;F=4;"
+        "P=3;N=9;M=1;L=4;F=4;"
+        "P=3;N=9;M=1;L=2;F=10;"
+        "P=3;N=9;M=1;L=3;F=10;"
+        "P=3;N=9;M=1;L=4;F=10;"
+        "P=3;N=9;M=1;L=2;F=28;"
+        "P=3;N=9;M=1;L=3;F=28;"
+        "P=3;N=9;M=1;L=4;F=28;"
+        "P=3;N=9;M=1;L=2;F=82;"
+        "P=3;N=9;M=1;L=3;F=82;"
+        "P=3;N=9;M=1;L=4;F=82;"
+        "P=3;N=9;M=1;L=2;F=244;"
+        "P=3;N=9;M=1;L=3;F=244;"
+        "P=3;N=9;M=1;L=4;F=244;"
 )
 
 for SEARCH_CASE in ${SEARCH_CASES[@]}

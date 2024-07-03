@@ -1,7 +1,9 @@
+load "lib/cczEquivalence.m";
 load "lib/invariantTable.m";
+load "lib/representatives.m";
+load "lib/semifields.m";
+load "lib/planar.m";
 load "lib/dupeq.m";
-
-/* Search parameters. Modify here */
 
 p := @P@;
 n := @N@;

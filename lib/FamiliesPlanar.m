@@ -804,5 +804,3 @@ getMyFamS:=function(R,s)
   Append(~Fam,x^2-x^(2*r)-x^(q+1)-x^((q+1)*r));
   return Fam;
 end function;
-
-

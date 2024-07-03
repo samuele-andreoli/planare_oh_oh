@@ -1,4 +1,4 @@
-load "lib/FamiliesPlanar.m";
+load "lib/familiesPlanar.m";
 load "lib/dupeq.m";
 
 i := 1; // to 4
