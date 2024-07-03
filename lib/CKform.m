@@ -48,6 +48,7 @@ getGpoly:=function(R,a)
 	f:=Evaluate(L,t^2)+Evaluate(D,t)+(x^2/2);
 	return (f mod (x^(p^n)-x));
 end function;
+
 //a is such that a=b^q-b for b not in GF(q)
 getPWpoly:=function(R,a)
 	x:=R.1;
@@ -64,20 +65,3 @@ getPWpoly:=function(R,a)
 	f:=Evaluate(L,t^2)+(x^2/2);
 	return (f mod (x^(p^n)-x));
 end function;
-
-// load "lib/representatives.m";
-// load "lib/invariantTable.m";
-// load "lib/dupeq.m";
-// load "lib/planar.m";
-// p:=3;
-// n:=8;
-// m:=n div 2;
-// q:=p^m;
-// F<u>:=GF(q^2);
-// R<x>:=PolynomialRing(F);
-// A:={b^q-b: b in F| not b in GF(q)};
-// for a in A do
-// 	f:=getCGpoly(R,a);
-// end for;
-
-

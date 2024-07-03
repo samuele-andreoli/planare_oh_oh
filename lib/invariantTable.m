@@ -1,41 +1,3 @@
-load "lib/representatives.m";
-load "lib/ccz_equivalence.m";
-load "lib/semifields.m";
-load "lib/planar.m";
-load "lib/dupeq.m";
-
-computeInvariantTable := procedure(n)
-    FuctionList:=getRepresentatives(n);
-    R<x>:=Parent(FuctionList[1]);
-    F<a>:=BaseRing(R);
-
-    invariantTable := AssociativeArray();
-
-    for f in FuctionList do
-        N:=[0,0];
-        if isDOPolynomial(f) then
-            N:=Nuclei(f, One(F));
-        end if;
-
-        order := "NA";
-        if ((n eq 6) and not N in {[3^6,3^6],[3^(2),3^(2)]}) then
-            order := AutomoriphismGroupOrderFromFunction(f);
-        end if;
-
-        key := Sprintf("%o.%o", N, order);
-
-        if not key in Keys(invariantTable) then
-            invariantTable[key] := {f};
-        else
-            Include(~invariantTable[key],f);
-        end if;
-    end for;
-
-    for key in Keys(invariantTable) do
-        printf "invariantTable[\"%o\"]:=%o;\n\n",key,invariantTable[key];
-    end for;
-end procedure;
-
 getInvariantTable:=function(n)
     F<a>:=GF(3^n);
     R<x>:=PolynomialRing(F);
@@ -194,31 +156,6 @@ getInvariantTable:=function(n)
 
     return invariantTable;
 end function;
-
-computeOrbitsTable := procedure()
-    printf "getOrbitsTable := function(n)";
-    printf "\tF<a> := GF(3^n);\n\tR<x> := PolynomialRing(F);\n";
-    printf "\torbitsTable := AssociativeArray();\n\n";
-    printf "\torbitsInvariantTable := AssociativeArray();\n\n";
-
-    for n := 3 to 8 do
-        printf "\tif n eq %o then\n", n;
-        
-        FunctionList:=getRepresentatives(n);
-        R<x>:=Parent(FunctionList[1]);
-        F<a>:=BaseRing(R);
-
-        for f in FunctionList do
-            orbits := partitionByL2(f);
-            printf "\t\torbitsTable[%o] := %o;\n", f, {Min(o) : o in orbits};
-            printf "\t\torbitsInvariantTable[%o] := \"%o\";\n", f, {* #o : o in orbits *};
-        end for;
-
-        printf "\tend if;\n";
-    end for;
-    printf "\n\treturn orbitsTable;\n";
-    printf "end function;\n";
-end procedure;
 
 getOrbitsTable := function(n)
     F<a> := GF(3^n);

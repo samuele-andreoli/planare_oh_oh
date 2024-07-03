@@ -1,7 +1,7 @@
 load "lib/dupeq.m";
 load "lib/semifields.m";
 load "lib/planar.m";
-load "lib/FamiliesPlanar.m";
+load "lib/familiesPlanar.m";
 load "lib/representatives.m";
 load "lib/invariantTable.m";
 

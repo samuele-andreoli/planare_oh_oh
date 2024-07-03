@@ -1,4 +1,3 @@
-//The classification in n=8 could be incomplete
 getRepresentatives:=function(n)
     F<a>:=GF(3^n);
     R<x>:=PolynomialRing(F);
@@ -126,30 +125,3 @@ getRepresentatives:=function(n)
     end if;
     return [];
 end function;
-
-PolyToLatex:=function(f)
-    R:=Parent(f);
-    F<a>:=BaseRing(R);
-    T:=Reverse(Terms(f));
-    C:=Coefficients(f);
-    TermToLatex:=function(t)
-        e:=Exponents(t)[1];
-        c:=C[e+1];
-        if c in PrimeField(F) then
-            if IsOne(c) then
-                return Sprintf("x^{%o}",e);
-            else
-                return Sprintf("%o x^{%o}",c,e);
-            end if;
-        else
-            return Sprintf("\\alpha^{%o} x^{%o}",Log(a,c),e);
-        end if;
-    end function;
-    myStr:="";
-    for i:=1 to (#T-1) do
-        myStr cat:=(TermToLatex(T[i]) cat " + ");
-    end for;
-    myStr cat:=TermToLatex(T[#T]);
-    return myStr;
-end function;
-
