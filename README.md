@@ -1,6 +1,6 @@
 # On a classification of planar functions in characteristics three
 
-This repository contains the code used for the classification and expansion searches carried out in [1](#1).
+This repository contains the code used for the classification and expansion searches carried out in [[1](#1)].
 
 # Software dependencies
 
