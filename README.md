@@ -1,6 +1,6 @@
-# A classification of planar functions in characteristics three
+# On a classification of planar functions in characteristics three
 
-This repository contains the code used for the computations in !!TODO Add eprint!!
+This repository contains the code used for the classification and expansion searches carried out in [1](#1).
 
 # Software dependencies
 
@@ -44,3 +44,7 @@ This directory contains the main logic of the code. Notable files are:
 * `invariantTable.m`, with the data regarding the invariants in an easy to digest form,
 * `familiesPlanar.m`, with the methods to generate members of all known families,
 * `dupeq.m`, with the linear equivalence test, as implemented in [nskal/dupeq](https://github.com/nskal/dupeq/tree/main).
+
+## References
+<a id="1">[1]</a>
+S. Andreoli, L. Budaghyan, R.S. Coulter, A. Haukenes, N. Kaleyski, E. Piccione. "On a classification of planar functions in characteristic three". arXiv [2407.03170](https://arxiv.org/abs/2407.03170)
