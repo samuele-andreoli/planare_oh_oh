@@ -29,7 +29,7 @@ The execution is logged in the `logs` sub-directory.
 There are two main versions of the parallel searches. `*.tpl` and `*_mem.tpl`. 
 
 * `*.tpl`: It can require a high amount of RAM, but it will report all the planar functions generated, their invariants, and their equivalence class. This is particularly useful for finding alternative representatives of known families, or for low dimension.
-* `*_mem.tpl`: It requires a very small amount of RAM, but the results will be much less structured, and it will only report the first representative found, and only for novel inequivalent planar functions.
+* `*_mem.tpl`: It requires a very small amount of RAM, but the results will be much less structured: it will only report the first representative found, and only for novel inequivalent planar functions.
 
 The detailed report will be saved in three subdirectories:
 * `expansions`: for the raw data on all planar functions generated.
