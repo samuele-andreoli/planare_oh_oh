@@ -1,12 +1,12 @@
 load "lib/representatives.m";
 load "lib/invariantTable.m";
 load "lib/cczEquivalence.m";
-load "lib/semifields.m";
+load "lib/semifields_mmaps.m";
 load "lib/planar.m";
 
 /* Header - choose the dimensions/functions to examine here */
 
-dimensions := [3..8];
+dimensions := [3..10];
 functionLists := [getRepresentatives(n) : n in dimensions];
 
 /* End of Header */
@@ -30,7 +30,7 @@ for i := 1 to #dimensions do
         
         N:=[0,0];
         if isDOPolynomial(f) then
-            N:=Nuclei(f, One(F));
+            N := Nuclei(f);
         end if;
 
         order := "NA";

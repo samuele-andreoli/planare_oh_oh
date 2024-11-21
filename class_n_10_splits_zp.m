@@ -1,5 +1,4 @@
 load "lib/familiesPlanar.m";
-load "lib/semifields.m"
 load "lib/dupeq.m";
 
 p := 3;

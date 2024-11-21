@@ -1,5 +1,5 @@
 load "lib/familiesPlanar.m";
-load "lib/semifields.m"
+load "lib/semifields_polynomial.m";
 load "lib/dupeq.m";
 
 p := 3;
@@ -101,7 +101,7 @@ split_BH := procedure(f, BH1TT, BH1TTinv, BH2TT, BH2TTinv)
         return star(starPsi[u],starPsi[v]);
     end function;
 
-    nuclei := getNuclei(f,e);
+    nuclei := getNuclei(f);
     N := nuclei[1];
     Nm := nuclei[2];
 
