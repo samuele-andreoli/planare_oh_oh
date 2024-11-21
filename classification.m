@@ -1,5 +1,5 @@
 load "lib/dupeq.m";
-load "lib/semifields.m";
+load "lib/semifields_polynomial.m";
 load "lib/planar.m";
 load "lib/familiesPlanar.m";
 load "lib/representatives.m";
@@ -147,7 +147,7 @@ SplitFun:=procedure(~Fun,~NucleiFun:OrbitsFun:=AssociativeArray(),AutomorphismsF
   end if;
   for f in Fun do
     if not IsDefined(NucleiFun,f) then
-      NucleiFun[f]:=getNuclei(f,One(F));
+      NucleiFun[f]:=getNuclei(f);
     end if;
   end for;
 
@@ -217,7 +217,7 @@ ClassifyFun:=procedure(n)
   printf "\ncomputing invariants of my representatives...";
   for f in myRep do 
     if isDOPolynomial(f) and not IsDefined(NucleiFun,f) then
-      NucleiFun[f]:=getNuclei(f,One(F));
+      NucleiFun[f]:=getNuclei(f);
     end if; 
   end for;
   printf "done\n";
@@ -236,7 +236,7 @@ ClassifyFun:=procedure(n)
     printf "done\t Number of functions %o\n",#Funs[i];
     for f in Funs[i] do
        if  not IsDefined(NucleiFun,f) then
-        NucleiFun[f]:=getNuclei(f,One(F));
+        NucleiFun[f]:=getNuclei(f);
       end if;
     end for;
     printf "reducing functions...";
@@ -247,7 +247,7 @@ ClassifyFun:=procedure(n)
     printf "done\t Number of functions %o\n",#Funs[i];
     for f in Funs[i] do
       if not IsDefined(NucleiFun,f) then
-        NucleiFun[f]:=getNuclei(f,One(F));
+        NucleiFun[f]:=getNuclei(f);
       end if;
     end for;
     printf "reducing functions with respect to my representatives...";

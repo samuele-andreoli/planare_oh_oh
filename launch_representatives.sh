@@ -26,5 +26,12 @@ do
         sed "s/@F@/${F}/g" $OUTFILE > $SCRATCH
         cp $SCRATCH $OUTFILE
 
+        if [$L -lt 2]; then
+                sed "s/@SEMIFIELDS@/semifields_polynomial.m/g" $OUTFILE > $SCRATCH
+        else
+                sed "s/@SEMIFIELDS@/semifields_mmaps.m/g" $OUTFILE > $SCRATCH
+        fi
+        cp $SCRATCH $OUTFILE
+
         screen -dm magma $OUTFILE
 done

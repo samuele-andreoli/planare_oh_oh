@@ -20,6 +20,8 @@ getZP_rest:=function(R)
 
     ZP:=[];
     ns:=pickNonSquare(GF(p^m));
+    Op  := [];
+    Op1 := [];
 
     for k in [1..(m div 2)] do
         OpTT := AssociativeArray();

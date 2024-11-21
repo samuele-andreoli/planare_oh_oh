@@ -1,6 +1,6 @@
 load "lib/cczEquivalence.m";
 load "lib/invariantTable.m";
-load "lib/semifields.m";
+load "lib/@SEMIFIELDS@";
 load "lib/dupeq.m";
 load "lib/planar.m";
 
@@ -185,7 +185,7 @@ for exp in ExpSpace do
 
         N:=[0,0];
         if isDOPolynomial(candidate) then
-            N:=Nuclei(candidate, One(F));
+            N:=Nuclei(candidate);
         end if;
 
         order := "NA";

@@ -1,6 +1,6 @@
 load "lib/cczEquivalence.m";
 load "lib/invariantTable.m";
-load "lib/semifields.m";
+load "lib/@SEMIFIELDS@";
 load "lib/dupeq.m";
 
 load "lib/planar.m";
@@ -189,7 +189,7 @@ to_test_for_equivalence := AssociativeArray();
 for f in generatedPlanarFunctions do
     N:=[0,0];
     if isDOPolynomial(f) then
-        N:=Nuclei(f, One(F));
+        N:=Nuclei(f);
     end if;
 
     order := "NA";

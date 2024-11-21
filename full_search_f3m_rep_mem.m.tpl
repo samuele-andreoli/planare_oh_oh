@@ -1,7 +1,7 @@
 load "lib/cczEquivalence.m";
 load "lib/invariantTable.m";
 load "lib/representatives.m";
-load "lib/semifields.m";
+load "lib/@SEMIFIELDS@";
 load "lib/planar.m";
 load "lib/dupeq.m";
 
@@ -128,7 +128,7 @@ for exp in ExpSpace do
         end if;
 
         try 
-            N:=Nuclei(candidate, One(F));
+            N:=Nuclei(candidate);
         catch e
             // Just test it with the equivalence
             N := [3,3];

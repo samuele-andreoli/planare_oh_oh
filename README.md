@@ -43,7 +43,8 @@ This directory contains the main logic of the code. Notable files are:
 * `representatives.m`, with the classification of the known families,
 * `invariantTable.m`, with the data regarding the invariants in an easy to digest form,
 * `familiesPlanar.m`, with the methods to generate members of all known families,
-* `dupeq.m`, with the linear equivalence test, as implemented in [nskal/dupeq](https://github.com/nskal/dupeq/tree/main).
+* `dupeq.m`, with the linear equivalence test, as implemented in [nskal/dupeq](https://github.com/nskal/dupeq/tree/main),
+* `semifields_*.m`, with the algorithms for computing the semifields and their nuclei.
 
 ## References
 <a id="1">[1]</a>

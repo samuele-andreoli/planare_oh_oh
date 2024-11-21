@@ -1,10 +1,15 @@
+/* Method 1 - Using polynomials
+    This method is only viable for sparse planar functions (monomials, binomials, at most trinomials)
+    If you plan on having less sparse polynomial use the alternative method with the multiplication maps
+*/
+
 /* Vandermonde interpolation for linear functions. */
 VandermondeInterpolation := function(R, X, Y)
     // Use X[1] instead of R since we want to support polynomial rings
     // different from PolynomialRing(F).
     F<a> := Parent(X[1]);
     n := Degree(F);
-    p := Characteristic(F); 
+    p := Characteristic(F);
 
     assert #Y eq n;
     assert #X eq n;
@@ -17,14 +22,13 @@ VandermondeInterpolation := function(R, X, Y)
     return &+[C[i+1] * R.1^(p^i) : i in [0..(n-1)]];
 end function;
 
-DOToSemifieldPoly:=function(f, e)
-    assert not IsZero(e);
-
+DOToSemifieldPoly:=function(f)
     R := Parent(f);
     F := BaseRing(R);
     p := Characteristic(F);
     n := Degree(F);
-    D := Divisors(n);
+
+    e := One(F);
 
     RR<a,b> := PolynomialRing(F,2);
     R0 := PolynomialRing(RR);
@@ -80,14 +84,13 @@ SpanAsterisk := function(asterisk, M, dM, u)
     return S, dS;
 end function;
 
-getNuclei:=function(f, e)
-    assert not IsZero(e);
-
+getNuclei:=function(f)
     R := Parent(f);
     F := BaseRing(R);
     p := Characteristic(F);
     n := Degree(F);
-    D := Divisors(n);
+
+    e := One(F);
 
     RR<a,b,c> := PolynomialRing(F,3);
     R0 := PolynomialRing(RR);
@@ -120,7 +123,6 @@ getNuclei:=function(f, e)
     g  := fl-fr;
 
     NextDim := function(d)
-        D := Divisors(n div d);
         return p^(d * (Divisors(n div d)[2])) - p^d;
     end function;
 
@@ -181,7 +183,7 @@ getNuclei:=function(f, e)
 end function;
 
 
-Nuclei:=function(f, e)
-    NN:=getNuclei(f,e);
+Nuclei:=function(f)
+    NN:=getNuclei(f);
     return [#NN[1],#NN[2]];
 end function;
